@@ -1,7 +1,6 @@
 {% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Perintah & easter egg{% endblock %}
 {% block isi %}
 <div class="kepala"><div><h1>Perintah &amp; easter egg</h1><p class="sub">Bot menjawab mention di luar thread kuis. Fitur tersembunyi, tidak diumumkan ke pemain.</p></div></div>
-<div class="pesan info">Mesin yang membaca dan menjawab mention dibuat di tahap 8. Pengaturan di halaman ini sudah tersimpan dan akan dipakai saat itu.</div>
 <div class="grid g4">
   <div class="kartu"><form method="post" action="/perintah/fitur">{{ csrf_field() }}
     <label><input type="checkbox" name="aktif" value="1" {{ 'checked' if p.perintah_aktif }}> Fitur perintah aktif</label>
@@ -57,8 +56,10 @@
 {% endif %}
 </div>
 <div class="kartu"><h2>Log perintah <span class="kecil">sesi lebih penting: jawaban menunggu slot posting yang kosong</span></h2>
-  <table><tr><th>Waktu</th><th>Pemain</th><th>Perintah</th><th>Status</th></tr>
-  {% for r, nick, key in log %}<tr><td>{{ r.received_at.strftime('%d/%m %H.%M') }}</td><td>{{ nick or '—' }}</td><td class="mono">{{ key or '—' }}</td><td>{{ r.status }}</td></tr>
-  {% else %}<tr><td colspan="4" class="redup">Belum ada mention.</td></tr>{% endfor %}</table>
+  <table><tr><th>Waktu</th><th>Pemain</th><th>Teks mention</th><th>Perintah</th><th>Status</th></tr>
+  {% for r, nick, key in log %}<tr><td>{{ r.received_at.strftime('%d/%m %H.%M') }}</td><td>{{ nick or '—' }}</td>
+    <td class="kecil">{{ (r.text or '')[:80] }}</td><td class="mono">{{ key or r.keyword or '—' }}</td>
+    <td><span class="lencana {{ 'hijau' if r.status == 'dijawab' else ('kuning' if r.status == 'antre' else '') }}">{{ r.status }}</span>{% if r.sent_at %} <span class="kecil">{{ r.sent_at.strftime('%H.%M') }}</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="5" class="redup">Belum ada mention.</td></tr>{% endfor %}</table>
 </div>
 {% endblock %}

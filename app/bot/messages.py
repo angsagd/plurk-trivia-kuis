@@ -32,6 +32,11 @@ TEMPLATE_BAWAAN: dict[str, str] = {
     "farewell": "Terima kasih sudah bermain! Sesi berikutnya: {sesi_berikutnya}.",
     "farewell_sudah_mulai": "Terima kasih sudah bermain! Sesi berikutnya sudah dimulai: {tautan}",
     "juara_mingguan": "🏆 Juara minggu ini ({rentang}): {juara}!\n{top10}",
+    # Variasi jawaban perintah lewat mention (template utama ada di tabel commands)
+    "perintah_jadwal_berlangsung": "Sesi sedang berlangsung, ayo ikut: {tautan_sesi}",
+    "perintah_rank_kosong": "{nama} belum punya poin minggu ini. Ikut sesi berikutnya {sesi_berikutnya}!",
+    "perintah_rank_satu": "Kamu #1 minggu ini ({poin} poin)! Sesi berikutnya {sesi_berikutnya}.",
+    "perintah_klasemen_kosong": "Belum ada skor minggu ini. Sesi berikutnya {sesi_berikutnya}.",
 }
 
 # Nama tampilan & isian yang tersedia per template (untuk halaman admin).
@@ -52,6 +57,10 @@ LABEL_TEMPLATE: dict[str, tuple[str, str]] = {
     "farewell": ("Farewell", "{sesi_berikutnya}"),
     "farewell_sudah_mulai": ("Farewell, sesi berikutnya sudah dimulai", "{tautan}"),
     "juara_mingguan": ("Juara mingguan (Selasa)", "{rentang} {juara} {top10}"),
+    "perintah_jadwal_berlangsung": ("Perintah jadwal: sesi sedang berlangsung", "{nama} {tautan_sesi}"),
+    "perintah_rank_kosong": ("Perintah rank: belum ada poin", "{nama} {sesi_berikutnya}"),
+    "perintah_rank_satu": ("Perintah rank: peringkat #1", "{nama} {poin} {sesi_berikutnya}"),
+    "perintah_klasemen_kosong": ("Perintah klasemen: belum ada skor", "{sesi_berikutnya}"),
 }
 
 CONTOH_ISIAN: dict[str, object] = {
@@ -60,7 +69,8 @@ CONTOH_ISIAN: dict[str, object] = {
     "soal": "Pulau di Indonesia yang dijuluki Pulau Dewata?", "clue": "Terkenal dengan Pura Tanah Lot",
     "nama": "pemain_a", "jawaban": "BALI", "skor": 4, "ranking": "1. pemain_a — 12\n2. pemain_b — 8",
     "sesi_berikutnya": "hari ini 16.00 WIB", "tautan": "https://www.plurk.com/p/abc123",
-    "rentang": "25–30 November", "juara": "pemain_a",
+    "rentang": "25–30 November", "juara": "pemain_a", "tautan_sesi": "https://www.plurk.com/p/abc123",
+    "poin": 42,
 }  # fmt: skip
 
 

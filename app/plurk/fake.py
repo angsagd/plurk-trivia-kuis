@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime
 
 from app.clock import Clock, ke_wib
-from app.plurk.client import AntiFlood, PlurkError, PlurkResponse, PlurkUser
+from app.plurk.client import AntiFlood, Mention, PlurkError, PlurkInfo, PlurkResponse, PlurkUser
 
 BOT = PlurkUser(1, "kuisbot")
 BATAS_TEKS = 360
@@ -26,6 +26,9 @@ class FakePlurk:
                 qualifier TEXT, limited_to TEXT, posted TEXT);
             CREATE TABLE IF NOT EXISTS responses (id INTEGER PRIMARY KEY AUTOINCREMENT, plurk_id INTEGER,
                 user_id INTEGER, nick TEXT, content TEXT, posted TEXT);
+            CREATE TABLE IF NOT EXISTS alerts (id INTEGER PRIMARY KEY AUTOINCREMENT, plurk_id INTEGER,
+                response_id INTEGER, user_id INTEGER, nick TEXT, posted TEXT);
+            CREATE TABLE IF NOT EXISTS friends (user_id INTEGER PRIMARY KEY);
             """
         )
         # Untuk tes: exception yang dilempar berurutan pada add_* berikutnya, dan Crash setelah n posting.
@@ -82,6 +85,24 @@ class FakePlurk:
     def accept_friends(self) -> None:
         return None
 
+    def get_mentions(self) -> list[Mention]:
+        """Seperti /APP/Alerts/getHistory: 30 alert 'mentioned' terakhir."""
+        rows = self.db.execute(
+            "SELECT plurk_id, response_id, user_id, nick, posted FROM alerts ORDER BY id DESC LIMIT 30"
+        ).fetchall()
+        return [Mention(r[0], r[1], r[2], r[3], datetime.fromisoformat(r[4])) for r in rows]
+
+    def get_plurk(self, plurk_id: int) -> PlurkInfo:
+        r = self.db.execute(
+            "SELECT id, owner_id, content, posted FROM plurks WHERE id = ?", (plurk_id,)
+        ).fetchone()
+        if r is None:
+            raise PlurkError(f"plurk {plurk_id} tidak ada")
+        return PlurkInfo(r[0], r[1], r[2], datetime.fromisoformat(r[3]))
+
+    def get_friend_ids(self) -> set[int]:
+        return {r[0] for r in self.db.execute("SELECT user_id FROM friends")}
+
     # ------------------------------------------------------------ alat simulasi
 
     def _tambah(self, plurk_id: int, user_id: int, nick: str, content: str, posted: str) -> int:
@@ -91,7 +112,31 @@ class FakePlurk:
             "INSERT INTO responses (plurk_id, user_id, nick, content, posted) VALUES (?, ?, ?, ?, ?)",
             (plurk_id, user_id, nick, content, posted),
         )
-        return int(cur.lastrowid or 0)
+        rid = int(cur.lastrowid or 0)
+        self._cek_mention(plurk_id, rid, user_id, nick, content, posted)
+        return rid
+
+    def _cek_mention(
+        self, plurk_id: int, response_id: int, user_id: int, nick: str, content: str, posted: str
+    ):
+        if user_id != BOT.id and f"@{BOT.nick}".lower() in content.lower():
+            self.db.execute(
+                "INSERT INTO alerts (plurk_id, response_id, user_id, nick, posted) VALUES (?, ?, ?, ?, ?)",
+                (plurk_id, response_id, user_id, nick, posted),
+            )
+
+    def inject_plurk(self, user_id: int, nick: str, content: str, posted: datetime | None = None) -> int:
+        """Plurk milik pemain tiruan (mis. berisi mention ke bot)."""
+        waktu = ke_wib(posted).isoformat() if posted else self._waktu()
+        baru = (self.db.execute("SELECT COALESCE(MAX(id), 1000000) FROM plurks").fetchone()[0]) + 1
+        self.db.execute(
+            "INSERT INTO plurks VALUES (?, ?, ?, ?, ?, ?)", (baru, user_id, content, ":", "", waktu)
+        )
+        self._cek_mention(baru, 0, user_id, nick, content, waktu)
+        return baru
+
+    def tambah_teman(self, *user_ids: int) -> None:
+        self.db.executemany("INSERT OR IGNORE INTO friends VALUES (?)", [(u,) for u in user_ids])
 
     def inject_response(
         self, plurk_id: int, user_id: int, nick: str, content: str, posted: datetime | None = None

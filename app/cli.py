@@ -12,7 +12,8 @@ backup --ke DIR [--simpan 14]         backup database (gzip, cek integritas) + h
 pulihkan FILE [--ke DB]               pulihkan backup .db.gz (hentikan bot & admin dulu!)
 uji-notifikasi                        kirim pesan uji ke Telegram
 kabari "teks"                         kirim notifikasi (dipakai skrip host, mis. backup offsite gagal)
-uji-plurk --untuk ID                  tahap 4: uji Plurk API asli lewat SATU plurk privat (memposting!)"""
+uji-plurk --untuk ID                  tahap 4: uji Plurk API asli lewat SATU plurk privat (memposting!)
+cek-mention                           dry run perintah mention (Plurk asli); tidak memposting/menyimpan"""
 
 import argparse
 import getpass
@@ -265,6 +266,40 @@ def uji_notifikasi() -> int:
     return 0
 
 
+def cek_mention() -> int:
+    """Baca alert mention asli, saring, dan hitung jawaban yang AKAN dikirim; semua perubahan di-rollback."""
+    import dataclasses
+
+    from app.bot import engine as mesin
+    from app.bot.mention import baca_mention, jawab
+    from app.bot.outbox import Pengirim
+    from app.bot.pengaturan import muat_pengaturan
+    from app.db import get_sessionmaker
+    from app.models import Command, CommandRequest
+    from app.plurk.real import RealPlurk
+
+    plurk = RealPlurk(get_settings())
+    with get_sessionmaker(get_engine())() as db:
+        p = dataclasses.replace(
+            muat_pengaturan(db), perintah_aktif=True, perintah_kedaluwarsa_menit=7 * 24 * 60
+        )
+        pengirim = Pengirim(
+            plurk, SystemClock(), maks_per_tick=0, jeda_detik=0, maks_gagal=5, tidur=time.sleep
+        )
+        k = mesin.Konteks(db, plurk, pengirim, p, SystemClock().now(), plurk.whoami().id, random.Random())
+        db.commit = db.flush  # dry run: jangan pernah menyimpan
+        baca_mention(k)
+        for req in db.scalars(select(CommandRequest).order_by(CommandRequest.received_at)):
+            pemain = db.get(Player, req.player_id) if req.player_id else None
+            nama = pemain.nick if pemain else "-"
+            print(f"[{req.received_at:%d/%m %H.%M}] {nama}: {req.text!r} -> {req.status}")
+            if req.status == "antre" and pemain is not None:
+                print(f"    jawaban: {jawab(k, db.get_one(Command, req.command_id), pemain)!r}")
+        db.rollback()
+    print("Dry run selesai: tidak ada yang diposting atau disimpan.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.cli")
     sub = ap.add_subparsers(dest="perintah", required=True)
@@ -314,6 +349,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--untuk", required=True, help="ID akun Plurk yang boleh melihat plurk uji, pisahkan koma")
     p.add_argument("--jeda", type=float, default=3.0, help="detik antar posting (default 3)")
 
+    sub.add_parser("cek-mention", help="dry run perintah mention dengan Plurk asli (tidak memposting)")
+
     p = sub.add_parser("kabari", help="kirim notifikasi ke Telegram")
     p.add_argument("teks")
 
@@ -352,6 +389,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"GAGAL: {e}")
             return 1
         return 0
+    if args.perintah == "cek-mention":
+        return cek_mention()
     if args.perintah == "kabari":
         from app import notifikasi
 

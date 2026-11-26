@@ -146,3 +146,37 @@ def test_pemetaan_error(jawaban, error):
 def test_cli_cek_plurk_tanpa_kredensial(capsys):
     assert cli.main(["cek-plurk"]) == 1
     assert "Kredensial Plurk belum diisi" in capsys.readouterr().out
+
+
+def test_get_mentions_gabung_active_history_tanpa_kembar():
+    waktu = "Thu, 26 Nov 2026 16:46:28 GMT"
+    alert = {"type": "mentioned", "plurk_id": 5, "response_id": None, "posted": waktu,
+             "from_user": {"id": 7, "nick_name": "andi"}}  # fmt: skip
+    balasan = {**alert, "response_id": 99, "plurk_id": 6}
+    p, sesi = plurk(
+        Jawaban(200, [alert]),
+        Jawaban(200, [alert, balasan, {"type": "new_friend", "plurk_id": None}]),
+    )
+    hasil = sorted(p.get_mentions(), key=lambda m: m.plurk_id)
+    assert [(m.plurk_id, m.response_id, m.user_id, m.nick) for m in hasil] == [
+        (5, 0, 7, "andi"),
+        (6, 99, 7, "andi"),
+    ]
+    assert hasil[0].posted == datetime(2026, 11, 26, 23, 46, 28, tzinfo=WIB)
+    assert [c[0] for c in sesi.panggilan] == ["/APP/Alerts/getActive", "/APP/Alerts/getHistory"]
+
+
+def test_get_plurk_dan_teman_berhalaman():
+    p, sesi = plurk(
+        Jawaban(200, {"plurk": {"plurk_id": 5, "owner_id": 7, "content_raw": "@kuisbot rank",
+                                "content": "<a>@kuisbot</a> rank", "posted": "Thu, 26 Nov 2026 16:46:28 GMT"}}),  # noqa: E501
+        Jawaban(200, {"id": 1, "nick_name": "kuisbot"}),
+        Jawaban(200, [{"id": i} for i in range(100)]),
+        Jawaban(200, [{"id": 100}, {"id": 101}]),
+        Jawaban(200, []),
+    )  # fmt: skip
+    info = p.get_plurk(5)
+    assert (info.owner_id, info.content) == (7, "@kuisbot rank")
+    assert p.get_friend_ids() == set(range(102))
+    offset = [c[1].get("offset") for c in sesi.panggilan if c[0] == "/APP/FriendsFans/getFriendsByOffset"]
+    assert offset == [0, 100, 102]

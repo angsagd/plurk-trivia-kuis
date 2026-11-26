@@ -17,7 +17,7 @@ from requests_oauthlib import OAuth1Session
 
 from app.clock import ke_wib
 from app.config import Settings
-from app.plurk.client import AntiFlood, PlurkError, PlurkResponse, PlurkUser, TokenDitolak
+from app.plurk.client import AntiFlood, Mention, PlurkError, PlurkInfo, PlurkResponse, PlurkUser, TokenDitolak
 
 log = logging.getLogger(__name__)
 
@@ -139,6 +139,51 @@ class RealPlurk:
 
     def accept_friends(self) -> None:
         self._panggil("/APP/Alerts/addAllAsFriends")
+
+    def get_mentions(self) -> list[Mention]:
+        """Alert 'mentioned' dari getActive + getHistory (30 terakhir), tanpa kembar.
+        Terbukti di tahap 4: response_id null = mention di plurk; from_user memuat id & nick_name."""
+        hasil: dict[tuple[int, int], Mention] = {}
+        for path in ("/APP/Alerts/getActive", "/APP/Alerts/getHistory"):
+            for a in self._panggil(path) or []:
+                if not isinstance(a, dict) or a.get("type") != "mentioned" or not a.get("plurk_id"):
+                    continue
+                dari = a.get("from_user") or {}
+                kunci = (int(a["plurk_id"]), int(a.get("response_id") or 0))
+                hasil.setdefault(
+                    kunci,
+                    Mention(
+                        kunci[0],
+                        kunci[1],
+                        int(dari.get("id") or 0),
+                        str(dari.get("nick_name") or ""),
+                        ke_wib(parsedate_to_datetime(a["posted"])),
+                    ),  # fmt: skip
+                )
+        return list(hasil.values())
+
+    def get_plurk(self, plurk_id: int) -> PlurkInfo:
+        isi = self._panggil("/APP/Timeline/getPlurk", plurk_id=plurk_id)
+        p = isi.get("plurk", isi)
+        teks = p.get("content_raw") if p.get("content_raw") is not None else p.get("content", "")
+        return PlurkInfo(
+            int(p["plurk_id"]), int(p["owner_id"]), str(teks), ke_wib(parsedate_to_datetime(p["posted"]))
+        )
+
+    def get_friend_ids(self) -> set[int]:
+        """Semua teman akun bot (paginasi getFriendsByOffset)."""
+        saya, ids, offset, batas = self.whoami().id, set(), 0, 100
+        while True:
+            halaman = self._panggil(
+                "/APP/FriendsFans/getFriendsByOffset", user_id=saya, offset=offset, limit=batas
+            )
+            baru = {int(t["id"]) for t in halaman or [] if isinstance(t, dict) and "id" in t}
+            if not baru - ids:
+                return ids
+            ids |= baru
+            offset += len(halaman)
+            if offset > 50_000:  # pengaman
+                return ids
 
 
 def _rahasia(nilai) -> str:

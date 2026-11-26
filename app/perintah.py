@@ -7,7 +7,7 @@ from app.models import Command, CommandAlias
 
 # key: (jenis, tampil di bantuan, sinonim, template)
 BAWAAN: dict[str, tuple[str, bool, list[str], str]] = {
-    "jadwal": ("bawaan", True, ["sesi"], "Sesi berikutnya {sesi_berikutnya}. {tautan_sesi}"),
+    "jadwal": ("bawaan", True, ["sesi"], "Sesi berikutnya {sesi_berikutnya}."),
     "klasemen": ("bawaan", True, ["top"], "🏆 Top 10 minggu ini:\n{top10}"),
     "rank": (
         "bawaan",

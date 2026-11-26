@@ -20,3 +20,31 @@ def test_respons_kustom_isian_dan_panjang():
     assert cek_respons_kustom("x" * 361, 360) == ["361 karakter, melebihi batas 360"]
     assert cek_respons_kustom("kurung {rusak", 360) == ["kurung kurawal { } tidak seimbang"]
     assert cek_respons_kustom("  ", 360) == ["respons kosong"]
+
+
+import pytest  # noqa: E402
+
+from app.core.commands import parse_perintah  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    "teks, harapan",
+    [
+        ("@kuisbot rank", "rank"),
+        ("@kuisbot: Rank?", "rank"),
+        ("@kuisbot RANK aku berapa", "rank"),
+        ("@kuisbot:rank", "rank"),
+        ("  @KuisBot   jadwal.", "jadwal"),
+        ("@kuisbot rank minggu", "rank"),
+        ("@kuisbot rank @nicklain", "rank"),
+        ("@kuisbot ?", "?"),
+        ("@kuisbot keren banget!", "keren"),
+        ("eh @kuisbot rank", None),
+        ("@kuisbotku rank", None),
+        ("@kuisbot", None),
+        ("@kuisbot ??", None),
+        ("@kuisbot 🙏", None),
+    ],
+)
+def test_parse_perintah(teks, harapan):
+    assert parse_perintah(teks, "kuisbot") == harapan

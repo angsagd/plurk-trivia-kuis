@@ -49,3 +49,27 @@ def cek_respons_kustom(teks: str, batas: int) -> list[str]:
     if len(teks) > batas:
         error.append(f"{len(teks)} karakter, melebihi batas {batas}")
     return error
+
+
+_TANDA_AKHIR = "!?.,;:…~)(\"'"
+
+
+def parse_perintah(teks: str, nick_bot: str) -> str | None:
+    """Kata kunci dari mention di AWAL teks, atau None bila bukan perintah.
+
+    '@kuisbot rank', '@kuisbot: Rank?', '@kuisbot RANK aku berapa' -> 'rank'; '@kuisbot ?' -> '?'.
+    'eh @kuisbot rank' (mention tidak di awal) -> None. '@kuisbot keren banget!' -> 'keren'
+    (bukan kata kunci; pemanggil mengabaikannya). Argumen setelah kata kunci diabaikan."""
+    m = re.match(
+        rf"@{re.escape(nick_bot)}(?![A-Za-z0-9_])\s*:?(.*)$", teks.strip(), re.IGNORECASE | re.DOTALL
+    )
+    if m is None:
+        return None
+    sisa = m.group(1).split()
+    if not sisa:
+        return None
+    kata = sisa[0]
+    if kata == "?":
+        return "?"
+    kata = kata.rstrip(_TANDA_AKHIR).lower()
+    return kata if POLA_KATA_KUNCI.match(kata) else None

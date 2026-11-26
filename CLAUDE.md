@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3 dan 5 selesai; tahap 6 siap di sisi repo (27 Nov 2026)** — tinggal dipasang di VPS (lihat `docs/deploy.md`). RealPlurk sudah dibuat, tahap 4 menunggu akun uji. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3, 5, dan 8 selesai; tahap 4 hampir selesai; tahap 6 siap di sisi repo (27 Nov 2026).** Sisa tahap 4: satu sesi penuh di akun uji (mode uji privat). Sisa tahap 6: pemasangan di VPS (`docs/deploy.md`). Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -261,7 +261,20 @@ Bot menjawab mention di **luar thread kuis** sebagai alat bantu informasi. Fitur
 - Kata kunci/sinonim kustom tidak boleh bentrok dengan kata kunci atau sinonim yang sudah ada; panjang respons dicek terhadap batas karakter Plurk.
 - Isi respons kustom dan daftar konten (pantun, fakta, ramalan) **disimpan di database**, bukan di kode (repo publik), dan **terpisah dari bank soal** supaya tidak membocorkan soal.
 
-### Kebutuhan Plurk API (harus dibuktikan di tahap 4)
+### Implementasi (tahap 8, 27 Nov 2026)
+
+- `app/core/commands.py` `parse_perintah()` (fungsi murni), `app/bot/mention.py` (langkah 5 & 9), CLI `cek-mention` (dry run dengan Plurk asli: membaca alert, menyaring, menghitung jawaban; tidak memposting & tidak menyimpan).
+- Sumber mention: alert `mentioned` (`getActive` + `getHistory`), maks 10 alert baru per tick, diurutkan menurut waktu mention. Setiap alert dicatat **sekali** di `command_requests` (unik `plurk_id`+`response_id`) beserta `text` dan `keyword`; status tambahan **`diabaikan`** (bukan perintah, mention tidak di awal, kata kunci tak dikenal, di thread kuis, mention oleh bot sendiri).
+- Fitur mati → mention tidak dibaca sama sekali. Saat dinyalakan lagi, alert yang lebih tua dari batas kedaluwarsa langsung dicatat `kedaluwarsa`.
+- Urutan saring: `nonaktif` → `diblokir` → `bukan_teman` (pemilik plurk ATAU pemain bukan teman; plurk milik bot dianggap teman) → `cooldown` (perintah sama oleh pemain sama berstatus antre/dijawab dalam 60 menit sejak waktu mention) → `batas_global` (antre+dijawab yang diterima dalam 1 jam terakhir) → `antre`.
+- Daftar teman di-cache 10 menit per proses (paginasi `getFriendsByOffset`).
+- Jawaban = balasan di plurk tempat mention. Dikirim di langkah 9 hanya dari **sisa** jatah posting setelah sesi (outbox prioritas 1), satu per satu; isinya dihitung tepat sebelum diantre ke outbox.
+- Variasi jawaban ada di tabel `templates` (bisa diubah di Kontrol & pengaturan → Template): `perintah_jadwal_berlangsung`, `perintah_rank_kosong`, `perintah_rank_satu` (peringkat #1, tanpa "selisih"), `perintah_klasemen_kosong`. Isian yang dikenal tapi tidak relevan diisi kosong (tidak pernah tampil "{isian}" mentah).
+- `rekor`: skor mingguan tertinggi (skor + koreksi) dan jawaban benar tercepat = detik dari soal tampil sampai balasan benar. `streak`: sesi selesai berturut-turut (yang sempat menjalankan soal) dengan ≥ 1 kemenangan; sesi yang masih berjalan tidak memutus streak. `statistik`: total benar + fase paling sering.
+- Error di langkah 5/9 tidak pernah mengganggu sesi (ditangkap, dicatat, notifikasi).
+- Dry run dengan Plurk asli (27 Nov 2026): mention `@triviatest rank` (di plurk sendiri) dan `@triviatest jadwal` (di balasan plurk indotrivia) terbaca, lolos cek teman, dan jawabannya benar. Balasan sungguhan ke Plurk belum dikirim.
+
+### Kebutuhan Plurk API (terbukti di tahap 4)
 - Membaca mention baru: plurk teman di timeline bot hampir pasti terbaca; mention di **balasan** pada plurk yang tidak diikuti bot belum tentu tersedia lewat API. Jika tidak, fitur tetap jalan dengan cakupan plurk yang terbaca saja.
 - Mengecek status pertemanan pemilik plurk dan pemain (cache daftar teman, diperbarui berkala).
 
@@ -433,7 +446,7 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 | 5 | Admin web 8 halaman | Semua fungsi mockup jalan di Mac |
 | 6 | Produksi: VPS, Traefik, backup, notifikasi | HTTPS jalan; healthcheck hijau; backup harian ada |
 | 7 | Uji coba 1–2 hari (mode uji, akun asli) → go-live | Sesi berjalan sesuai jadwal tanpa campur tangan |
-| 8 | Perintah lewat mention + easter egg | Semua tes perintah lulus; jawaban tidak pernah menggeser posting sesi; fitur bisa dimatikan dari admin |
+| 8 | Perintah lewat mention + easter egg | Semua tes perintah lulus; jawaban tidak pernah menggeser posting sesi; fitur bisa dimatikan dari admin · **selesai 27 Nov 2026** |
 
 ## Pertanyaan terbuka
 
@@ -450,13 +463,14 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - `CLAUDE.md` — dokumen ini
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
+- Tahap 8: `app/core/commands.py` (`parse_perintah`), `app/bot/mention.py`, `PlurkClient.get_mentions/get_plurk/get_friend_ids` (Fake + Real), migrasi `teks perintah` (`command_requests.text`, `.keyword`), CLI `cek-mention`
 - Tahap 6 (sisi repo): `app/notifikasi.py`, `app/backup.py`, CLI `backup`/`pulihkan`/`uji-notifikasi`/`kabari`, watchdog bot di admin, `scripts/backup.sh`, `scripts/update.sh`, `docs/deploy.md`, hardening `compose.prod.yml`
 - Tahap 5: admin web (`app/admin/`: 8 halaman + login, `routes/` per halaman, `templates/`, `static/`), `app/core/commands.py`, `app/perintah.py`, `app/bot/libur.py`; CLI `buat-admin --totp`
 - Tahap 3–4: `app/plurk/` (`client.py` antarmuka + error, `fake.py` FakePlurk SQLite, `real.py` RealPlurk OAuth, belum diuji ke Plurk asli), `app/bot/` (`engine.py` mesin thread, `outbox.py`, `tick.py`, `messages.py`, `pengaturan.py`, `peringkat.py`, `simulator.py`), CLI `status`/`tick`/`simulasi`/`thread`
 - Tahap 2: `app/db.py` (SQLite WAL, `WaktuWIB`, `sesi_db`), `app/models.py` (19 tabel), `alembic/` (migrasi `skema awal`), `app/bank_soal.py` (impor topik), CLI `seed` & `buat-admin`; tick menulis `bot_state`, healthcheck bot membaca `bot_state.heartbeat_at`
 - Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
 - `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
-- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_admin.py` (login, CSRF, TOTP, 8 halaman, aksi admin), `test_ops.py` (backup, pulihkan, notifikasi, watchdog), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_admin.py` (login, CSRF, TOTP, 8 halaman, aksi admin), `test_ops.py` (backup, pulihkan, notifikasi, watchdog), `test_mention.py` (perintah lewat mention), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

@@ -1,5 +1,4 @@
-"""Satu tick bot (urutan kerja: lihat CLAUDE.md "Urutan kerja satu tick").
-Langkah 5 (mention) dan 9 (antrean perintah) dibuat di tahap 8; posting hari libur terjadwal di tahap 5."""
+"""Satu tick bot (urutan kerja: lihat CLAUDE.md "Urutan kerja satu tick")."""
 
 import logging
 import random
@@ -11,7 +10,7 @@ from sqlalchemy import Engine
 
 from app import notifikasi
 from app.bot import engine as mesin
-from app.bot import libur
+from app.bot import libur, mention
 from app.bot.outbox import Pengirim
 from app.bot.pengaturan import muat_pengaturan
 from app.clock import Clock, FakeClock, SystemClock
@@ -73,6 +72,8 @@ def jalankan_tick(
                 log.exception("accept_friends gagal")
 
         k = mesin.Konteks(db, plurk, pengirim, p, now, plurk.whoami().id, rng or random.Random())
+        # 5. mention -> antrean perintah (juga di hari libur). Error di sini tidak boleh mengganggu sesi.
+        _aman(db, "baca mention", lambda: mention.baca_mention(k))
         # 6. hari libur: posting terjadwal + juara mingguan (Selasa)
         if not p.jadwal.hari_aktif_pada(now.date()):
             libur.proses(k)
@@ -92,6 +93,17 @@ def jalankan_tick(
             slot = p.jadwal.slot_sesi(now, p.toleransi_slot_menit)
             if slot is not None:
                 mesin.buka_sesi(k, slot)
+        # 9. sisa jatah posting -> jawaban perintah (prioritas rendah)
+        _aman(db, "kirim antrean perintah", lambda: mention.kirim_antrean(k))
+
+
+def _aman(db, nama: str, fungsi) -> None:
+    try:
+        fungsi()
+    except Exception as e:
+        db.rollback()
+        log.exception("%s gagal", nama)
+        notifikasi.kirim(f"error_{nama}", f"{nama} gagal: {type(e).__name__}: {e}")
 
 
 def catat_error(engine: Engine, pesan: str) -> None:

@@ -36,6 +36,25 @@ class PlurkResponse:
     posted: datetime
 
 
+@dataclass(frozen=True)
+class Mention:
+    """Alert 'mentioned'. response_id 0 = mention di plurk itu sendiri."""
+
+    plurk_id: int
+    response_id: int
+    user_id: int
+    nick: str
+    posted: datetime
+
+
+@dataclass(frozen=True)
+class PlurkInfo:
+    plurk_id: int
+    owner_id: int
+    content: str
+    posted: datetime
+
+
 class PlurkClient(Protocol):
     def whoami(self) -> PlurkUser: ...
 
@@ -48,6 +67,12 @@ class PlurkClient(Protocol):
     def get_responses(self, plurk_id: int, setelah_id: int = 0) -> list[PlurkResponse]: ...
 
     def accept_friends(self) -> None: ...
+
+    def get_mentions(self) -> list[Mention]: ...
+
+    def get_plurk(self, plurk_id: int) -> PlurkInfo: ...
+
+    def get_friend_ids(self) -> set[int]: ...
 
 
 def tautan_plurk(plurk_id: int) -> str:

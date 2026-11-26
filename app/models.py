@@ -286,7 +286,9 @@ class CommandRequest(Base):
     player_id: Mapped[int | None] = mapped_column(ForeignKey("players.id"))
     command_id: Mapped[int | None] = mapped_column(ForeignKey("commands.id"))
     received_at: Mapped[datetime] = mapped_column(WaktuWIB())
-    # antre / dijawab / cooldown / batas_global / kedaluwarsa / nonaktif / bukan_teman / diblokir
+    text: Mapped[str | None] = mapped_column(Text)  # teks mention saat pertama terbaca (dipotong 300)
+    keyword: Mapped[str | None] = mapped_column(String(32))  # kata pertama setelah mention
+    # antre / dijawab / cooldown / batas_global / kedaluwarsa / nonaktif / bukan_teman / diblokir / diabaikan
     status: Mapped[str] = mapped_column(String(16))
     outbox_id: Mapped[int | None] = mapped_column(ForeignKey("outbox.id"))
     sent_at: Mapped[datetime | None] = mapped_column(WaktuWIB())
