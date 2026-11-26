@@ -9,6 +9,7 @@ from datetime import datetime
 
 from sqlalchemy import Engine
 
+from app import notifikasi
 from app.bot import engine as mesin
 from app.bot import libur
 from app.bot.outbox import Pengirim
@@ -84,6 +85,7 @@ def jalankan_tick(
                 db.rollback()
                 log.exception("thread sesi %d gagal", sesi.id)
                 catat_error(engine, f"sesi {sesi.id}: {type(e).__name__}: {e}")
+                notifikasi.kirim("error_thread", f"Thread sesi {sesi.id} error: {type(e).__name__}: {e}")
         # 6/8. hari aktif + status aktif + slot sesi tiba -> buka thread baru (jeda: tidak)
         db.refresh(st)
         if st.status == "aktif":

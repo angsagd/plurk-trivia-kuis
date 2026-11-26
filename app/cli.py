@@ -7,7 +7,11 @@ status aktif|jeda|berhenti|hentikan   ubah status bot (hentikan = semua thread l
 tick --now "2026-11-30T12:00"         jalankan satu tick pada jam tertentu (khusus PLURK_MODE=fake)
 simulasi --pemain 8 --benar 0.3       pemain tiruan membalas thread FakePlurk (Ctrl-C untuk berhenti)
 thread [--sesi ID]                    tampilkan isi thread FakePlurk (default: sesi terbaru)
-cek-plurk                             cek kredensial Plurk asli (/APP/Users/me); tidak memposting apa pun"""
+cek-plurk                             cek kredensial Plurk asli (/APP/Users/me); tidak memposting apa pun
+backup --ke DIR [--simpan 14]         backup database (gzip, cek integritas) + hapus backup lama
+pulihkan FILE [--ke DB]               pulihkan backup .db.gz (hentikan bot & admin dulu!)
+uji-notifikasi                        kirim pesan uji ke Telegram
+kabari "teks"                         kirim notifikasi (dipakai skrip host, mis. backup offsite gagal)"""
 
 import argparse
 import getpass
@@ -217,6 +221,48 @@ def cek_plurk() -> int:
     return 0
 
 
+def backup(ke: str, simpan: int) -> int:
+    from app.backup import buat_backup
+
+    try:
+        hasil = buat_backup(get_settings().db_path, Path(ke), SystemClock().now(), simpan)
+    except Exception as e:
+        print(f"GAGAL: {e}")
+        from app import notifikasi
+
+        notifikasi.get_notifier()._latar = False
+        notifikasi.kirim("backup_gagal", f"Backup database gagal: {e}")
+        return 1
+    print(f"OK: {hasil} ({hasil.stat().st_size // 1024} KB)")
+    return 0
+
+
+def pulihkan(file: str, ke: str | None) -> int:
+    from app.backup import pulihkan as _pulihkan
+
+    tujuan = Path(ke) if ke else get_settings().db_path
+    try:
+        _pulihkan(Path(file), tujuan)
+    except Exception as e:
+        print(f"GAGAL: {e}")
+        return 1
+    print(f"OK: {file} dipulihkan ke {tujuan}")
+    return 0
+
+
+def uji_notifikasi() -> int:
+    from app import notifikasi
+
+    n = notifikasi.get_notifier()
+    if not n.aktif:
+        print("Telegram belum diatur: isi TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID di .env")
+        return 1
+    n._latar = False
+    n.kirim("uji", "Pesan uji notifikasi. Jika ini sampai, notifikasi berfungsi.", paksa=True)
+    print("Pesan uji dikirim (cek Telegram; kegagalan dicatat di log).")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.cli")
     sub = ap.add_subparsers(dest="perintah", required=True)
@@ -253,6 +299,18 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("cek-plurk", help="cek kredensial Plurk asli (tanpa memposting)")
 
+    p = sub.add_parser("backup", help="backup database ke folder")
+    p.add_argument("--ke", required=True, help="folder tujuan, mis. /backup")
+    p.add_argument("--simpan", type=int, default=14, help="hapus backup lebih tua dari N hari (default 14)")
+
+    p = sub.add_parser("pulihkan", help="pulihkan backup .db.gz")
+    p.add_argument("file")
+    p.add_argument("--ke", help="file database tujuan (default DB_PATH)")
+
+    sub.add_parser("uji-notifikasi", help="kirim pesan uji ke Telegram")
+    p = sub.add_parser("kabari", help="kirim notifikasi ke Telegram")
+    p.add_argument("teks")
+
     args = ap.parse_args(argv)
     if args.perintah == "health":
         return health(args.target)
@@ -271,6 +329,17 @@ def main(argv: list[str] | None = None) -> int:
         return thread(args.sesi)
     if args.perintah == "cek-plurk":
         return cek_plurk()
+    if args.perintah == "backup":
+        return backup(args.ke, args.simpan)
+    if args.perintah == "pulihkan":
+        return pulihkan(args.file, args.ke)
+    if args.perintah == "uji-notifikasi":
+        return uji_notifikasi()
+    if args.perintah == "kabari":
+        from app import notifikasi
+
+        notifikasi.get_notifier()._latar = False
+        return 0 if notifikasi.kirim("skrip", args.teks[:1000], paksa=True) else 1
     return 2
 
 

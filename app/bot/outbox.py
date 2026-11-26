@@ -12,6 +12,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import notifikasi
 from app.clock import Clock
 from app.models import BotState, GameSession, Outbox
 from app.plurk.client import PlurkClient, PlurkError, TokenDitolak
@@ -119,6 +120,9 @@ class Pengirim:
                 st.last_error_at = self.clock.now()
                 db.commit()
                 log.error("token Plurk ditolak; bot dihentikan")
+                notifikasi.kirim(
+                    "token", "Token Plurk ditolak. Bot dihentikan; periksa .env lalu jalankan lagi."
+                )
                 break
             except PlurkError as e:
                 self.berhenti = True
@@ -127,6 +131,7 @@ class Pengirim:
                 if row.attempts >= self.maks_gagal:
                     row.status = "failed"
                     log.error("outbox %s gagal %d kali: %s", row.dedupe_key, row.attempts, e)
+                    notifikasi.kirim("outbox_gagal", f"Posting {row.dedupe_key} gagal {row.attempts}x: {e}")
                 else:
                     log.warning("outbox %s ditunda (%s), percobaan %d", row.dedupe_key, e, row.attempts)
                 db.commit()

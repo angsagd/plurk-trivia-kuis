@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
+from app import notifikasi
 from app.bot import messages
 from app.bot.outbox import Pengirim, antre, hasil_kirim
 from app.bot.pengaturan import Pengaturan
@@ -108,6 +109,7 @@ def buka_sesi(k: Konteks, slot: int) -> GameSession | None:
         st = db.get_one(BotState, 1)
         st.last_error, st.last_error_at = "Sesi tidak dibuka: stok soal kosong", now
         db.commit()
+        notifikasi.kirim("stok_kosong", "Sesi tidak dibuka: stok soal aktif kosong. Unggah bank soal.")
         return None
 
     for tid, cycle in hasil.cycle_baru.items():

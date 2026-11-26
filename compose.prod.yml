@@ -1,6 +1,16 @@
 # Produksi di VPS, di belakang Traefik. Semua nilai spesifik server dibaca dari .env.
+x-keras: &keras  # hardening: root filesystem read-only, tanpa capability Linux
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
 services:
   admin:
+    <<: *keras
     env_file: .env
     environment:
       FORWARDED_ALLOW_IPS: "*"   # hanya Traefik yang bisa menjangkau port 8000
@@ -21,6 +31,7 @@ services:
         max-file: "3"
 
   bot:
+    <<: *keras
     env_file: .env
     logging: *log
 

@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3 dan 5 selesai (27 Nov 2026)**; RealPlurk sudah dibuat, tahap 4 menunggu akun uji. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3 dan 5 selesai; tahap 6 siap di sisi repo (27 Nov 2026)** — tinggal dipasang di VPS (lihat `docs/deploy.md`). RealPlurk sudah dibuat, tahap 4 menunggu akun uji. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -20,6 +20,7 @@ Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 2
 - Perubahan skema database selalu lewat migrasi Alembic.
 - Repo ini **publik**: patuhi bagian "Repo publik" di bawah.
 - Bila ada keputusan baru dari pemilik proyek, perbarui dokumen ini.
+- **Commit tanpa trailer `Co-Authored-By: Claude …`** (keputusan 27 Nov 2026: Claude tidak boleh tercantum sebagai contributor repo). Pesan PR juga tanpa atribusi Claude.
 
 ## Repo publik: yang TIDAK boleh di-commit
 
@@ -87,20 +88,23 @@ Aturan:
 - Kode: Mac → GitHub (**repo publik**, tanpa rahasia dan tanpa soal) → VPS (`git clone`/`git pull` biasa, tidak perlu deploy key).
 - Bank soal produksi diunggah lewat halaman admin dari file di laptop; `.env` produksi dibuat langsung di VPS.
 - **Image selalu di-build di VPS** (Mac arm64, VPS kemungkinan amd64).
-- Update: `git pull` → `build` → `run --rm bot alembic upgrade head` → `up -d`. Lakukan di luar jam sesi atau di hari libur.
-- Backup harian: `scripts/backup.sh` (`sqlite3 .backup` dari volume, salin ke luar VPS, simpan 14 hari).
+- Update: `scripts/update.sh` (`git pull --ff-only` → backup → `build` → `alembic upgrade head` → `up -d`); menolak jalan pukul 11.00–23.00 WIB di hari aktif kecuali `--paksa`.
+- Backup harian (cron host): `scripts/backup.sh` → CLI `backup` (SQLite backup API lewat Python, aman saat bot menulis; `integrity_check`; gzip; simpan 14 hari di `/var/backups/plurk-trivia-kuis`) lalu salin ke luar VPS lewat `BACKUP_RCLONE` atau `BACKUP_RSYNC`. Pulihkan: CLI `pulihkan`.
+- Runbook lengkap (cek VPS, `.env`, pemasangan, cron, update, pemulihan, keamanan): `docs/deploy.md`.
+- `compose.prod.yml`: root filesystem read-only + `tmpfs /tmp`, `no-new-privileges`, `cap_drop: ALL`; image produksi tanpa pytest/ruff. Sudah diuji di Mac dengan Traefik v3.6 sungguhan (routing HTTPS, host lain 404, cookie Secure di belakang proxy, port 8000 tidak dibuka).
+- Notifikasi Telegram (`app/notifikasi.py`, opsional): token Plurk ditolak, outbox gagal 5×, error tick/thread, stok soal kosong, backup gagal, dan **bot macet > 3 menit** — yang terakhir dipantau watchdog di kontainer **admin** (tiap 60 detik), karena bot yang mati tidak bisa melapor. Jenis yang sama paling banyak sekali per jam; tidak pernah memblokir tick. CLI `uji-notifikasi`, `kabari "teks"`.
 - NTP host aktif (jadwal bergantung pada menit yang tepat).
 
 ## Struktur repo (target)
 
 ```
 app/
-  config.py  db.py  models.py  clock.py  cli.py  bank_soal.py  perintah.py
+  config.py  db.py  models.py  clock.py  cli.py  bank_soal.py  perintah.py  notifikasi.py  backup.py
   core/      matching.py judging.py scoring.py clues.py validator.py selection.py schedule.py commands.py
   plurk/     client.py real.py fake.py
   bot/       loop.py tick.py engine.py outbox.py messages.py pengaturan.py peringkat.py simulator.py libur.py
   admin/     main.py auth.py deps.py query.py routes/ templates/ static/ (htmx 2.0.4 disimpan lokal + SRI)
-alembic/  contoh/  tests/  scripts/backup.sh  tools/validasi_soal.py
+alembic/  contoh/  tests/  scripts/backup.sh scripts/update.sh  tools/validasi_soal.py  docs/deploy.md
 private/   ← TIDAK di-commit: bank_soal/ (soal asli), laporan/
 .gitignore  .dockerignore  .env.example
 Dockerfile  compose.yml  compose.override.yml  compose.prod.yml  .env.example  pyproject.toml
@@ -439,12 +443,13 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - `CLAUDE.md` — dokumen ini
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
+- Tahap 6 (sisi repo): `app/notifikasi.py`, `app/backup.py`, CLI `backup`/`pulihkan`/`uji-notifikasi`/`kabari`, watchdog bot di admin, `scripts/backup.sh`, `scripts/update.sh`, `docs/deploy.md`, hardening `compose.prod.yml`
 - Tahap 5: admin web (`app/admin/`: 8 halaman + login, `routes/` per halaman, `templates/`, `static/`), `app/core/commands.py`, `app/perintah.py`, `app/bot/libur.py`; CLI `buat-admin --totp`
 - Tahap 3–4: `app/plurk/` (`client.py` antarmuka + error, `fake.py` FakePlurk SQLite, `real.py` RealPlurk OAuth, belum diuji ke Plurk asli), `app/bot/` (`engine.py` mesin thread, `outbox.py`, `tick.py`, `messages.py`, `pengaturan.py`, `peringkat.py`, `simulator.py`), CLI `status`/`tick`/`simulasi`/`thread`
 - Tahap 2: `app/db.py` (SQLite WAL, `WaktuWIB`, `sesi_db`), `app/models.py` (19 tabel), `alembic/` (migrasi `skema awal`), `app/bank_soal.py` (impor topik), CLI `seed` & `buat-admin`; tick menulis `bot_state`, healthcheck bot membaca `bot_state.heartbeat_at`
 - Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
 - `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
-- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_admin.py` (login, CSRF, TOTP, 8 halaman, aksi admin), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_admin.py` (login, CSRF, TOTP, 8 halaman, aksi admin), `test_ops.py` (backup, pulihkan, notifikasi, watchdog), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

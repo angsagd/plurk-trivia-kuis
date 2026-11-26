@@ -1,6 +1,8 @@
 """Aplikasi admin web (FastAPI + Jinja2 + HTMX). Satu akun admin; semua halaman wajib login."""
 
-from contextlib import asynccontextmanager
+import asyncio
+import logging
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Form, Request
@@ -8,12 +10,45 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
+from app import notifikasi
 from app.admin import auth
 from app.admin.deps import PerluLogin, audit, get_db, jam_nyata, templates
 from app.admin.routes import dashboard, libur, log, pengaturan, peringkat, perintah, riwayat, soal
+from app.bot.tick import sehat
 from app.config import get_settings
-from app.db import get_sessionmaker
+from app.db import get_engine, get_sessionmaker
+from app.models import BotState
 from app.perintah import pastikan_perintah_bawaan
+
+logger = logging.getLogger(__name__)
+INTERVAL_PANTAU = 60
+
+
+def pantau_bot_sekali(status_lalu: bool | None) -> bool:
+    """Watchdog: bot yang mati tidak bisa melapor sendiri, jadi kontainer admin yang mengirim notifikasi
+    bila detak bot > 3 menit (kecuali bot memang berstatus berhenti). Kembalikan status sehat sekarang."""
+    with get_sessionmaker()() as db:
+        st = db.get(BotState, 1)
+        berhenti = st is None or st.status == "berhenti"
+    ok = berhenti or sehat(get_engine())
+    if not ok and status_lalu is not False:
+        notifikasi.kirim(
+            "bot_macet", "Bot tidak mengirim detak lebih dari 3 menit (kontainer bot mati/macet?)."
+        )
+    elif ok and status_lalu is False:
+        notifikasi.get_notifier().reset("bot_macet")
+        notifikasi.kirim("bot_pulih", "Bot kembali normal.", paksa=True)
+    return ok
+
+
+async def _pantau() -> None:
+    status: bool | None = None
+    while True:
+        await asyncio.sleep(INTERVAL_PANTAU)
+        try:
+            status = await asyncio.to_thread(pantau_bot_sekali, status)
+        except Exception:
+            logger.exception("watchdog bot gagal")
 
 
 @asynccontextmanager
@@ -22,7 +57,11 @@ async def lifespan(_app: FastAPI):
     with get_sessionmaker()() as db:
         pastikan_perintah_bawaan(db)
         db.commit()
+    tugas = asyncio.create_task(_pantau())
     yield
+    tugas.cancel()
+    with suppress(asyncio.CancelledError):
+        await tugas
 
 
 app = FastAPI(

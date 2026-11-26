@@ -5,6 +5,7 @@ import logging
 import signal
 import threading
 
+from app import notifikasi
 from app.bot.tick import catat_error, jalankan_tick
 from app.clock import FakeClock, SystemClock, awal_menit, detik_ke_menit_berikutnya
 from app.config import Settings, get_settings
@@ -27,6 +28,7 @@ def jalankan(settings: Settings, berhenti: threading.Event, maks_tick: int | Non
         except Exception as e:
             log.exception("tick %s gagal", now)
             catat_error(engine, f"{type(e).__name__}: {e}")
+            notifikasi.kirim("error_tick", f"Tick gagal: {type(e).__name__}: {e}")
 
     clock: FakeClock | SystemClock
     if settings.jam_palsu:
