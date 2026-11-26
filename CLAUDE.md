@@ -141,7 +141,9 @@ Dockerfile  compose.yml  compose.override.yml  compose.prod.yml  .env.example  p
   - `from_response` = **offset** (indeks balasan), bukan ID; `count` didukung. Bot tetap mengambil semua lalu menyaring ID.
   - Qualifier `:` dan `limited_to` (plurk privat) diterima; spasi ganda di teks tetap utuh.
   - Balasan berisi sama persis berturut-turut **tidak** kena anti-flood.
-  - `/APP/Alerts/getHistory` memberi alert dengan `type`, `plurk_id`, `response_id`, `from_user`, `posted`; `getActive` kosong saat diuji; mention sungguhan belum diuji (prasyarat tahap 8).
+  - **Mention terbukti terbaca (27 Nov 2026)** lewat `/APP/Alerts/getActive` dan `/APP/Alerts/getHistory` (30 alert terakhir): alert `type: "mentioned"` berisi `plurk_id`, `response_id` (**null = mention di plurk itu sendiri**, terisi = mention di balasan), `from_user` (dengan `id` & `nick_name`), `posted` (waktu mention, GMT). Keduanya terbaca: mention di plurk milik teman sendiri, dan mention di **balasan pada plurk milik akun lain** (pemiliknya teman bot).
+  - `/APP/Timeline/getPlurks filter=mentioned` hanya memuat mention di plurk (bukan di balasan) → tidak dipakai.
+  - Rencana tahap 8: tiap tick baca `getHistory` (+ `getActive`), ambil alert `mentioned` yang belum ada di `command_requests` (unik `plurk_id`+`response_id`, 0 = plurk); isi teks dari `/APP/Timeline/getPlurk` (`content_raw`, juga `owner_id` untuk cek teman) atau dari `/APP/Responses/get` (cari ID balasan); teman dari `/APP/FriendsFans/getFriendsByOffset` (cache, paginasi). Mention di plurk milik bukan-teman belum diuji (tetap diabaikan sesuai aturan).
 
 ## Jadwal
 
@@ -440,8 +442,7 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - Rumus skor final.
 - Gabung posting 02 (Top 10) dan 03 (ajakan) menjadi satu posting atau tidak.
 - Tujuan backup di luar VPS; notifikasi Telegram atau email.
-- Akun Plurk uji untuk tahap 4.
-- Seberapa luas mention yang bisa dibaca lewat Plurk API (plurk teman saja, atau juga balasan di plurk lain).
+- Mention di plurk milik akun yang **bukan** teman bot: apakah alert tetap muncul (tidak menghalangi; mention itu memang diabaikan).
 - Isi awal easter egg kustom (kata kunci dan respons) — dibahas terpisah.
 
 ## Isi repo saat ini
