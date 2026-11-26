@@ -11,7 +11,8 @@ cek-plurk                             cek kredensial Plurk asli (/APP/Users/me);
 backup --ke DIR [--simpan 14]         backup database (gzip, cek integritas) + hapus backup lama
 pulihkan FILE [--ke DB]               pulihkan backup .db.gz (hentikan bot & admin dulu!)
 uji-notifikasi                        kirim pesan uji ke Telegram
-kabari "teks"                         kirim notifikasi (dipakai skrip host, mis. backup offsite gagal)"""
+kabari "teks"                         kirim notifikasi (dipakai skrip host, mis. backup offsite gagal)
+uji-plurk --untuk ID                  tahap 4: uji Plurk API asli lewat SATU plurk privat (memposting!)"""
 
 import argparse
 import getpass
@@ -35,6 +36,7 @@ from app.core.validator import ValidasiGagal
 from app.db import get_engine, sesi_db
 from app.models import Admin, AdminAudit, BotState, GameSession, Player
 from app.plurk import buat_plurk
+from app.plurk.client import PlurkError
 from app.plurk.fake import FakePlurk
 
 # Pemain karangan untuk dev (FakePlurk); ID di luar rentang wajar ID Plurk asli.
@@ -308,6 +310,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--ke", help="file database tujuan (default DB_PATH)")
 
     sub.add_parser("uji-notifikasi", help="kirim pesan uji ke Telegram")
+    p = sub.add_parser("uji-plurk", help="uji Plurk API asli lewat satu plurk privat (memposting)")
+    p.add_argument("--untuk", required=True, help="ID akun Plurk yang boleh melihat plurk uji, pisahkan koma")
+    p.add_argument("--jeda", type=float, default=3.0, help="detik antar posting (default 3)")
+
     p = sub.add_parser("kabari", help="kirim notifikasi ke Telegram")
     p.add_argument("teks")
 
@@ -335,6 +341,17 @@ def main(argv: list[str] | None = None) -> int:
         return pulihkan(args.file, args.ke)
     if args.perintah == "uji-notifikasi":
         return uji_notifikasi()
+    if args.perintah == "uji-plurk":
+        from app.plurk.real import RealPlurk
+        from app.plurk.uji import jalankan
+
+        try:
+            untuk = [int(x) for x in args.untuk.replace(" ", "").split(",") if x]
+            jalankan(RealPlurk(get_settings()), untuk, args.jeda)
+        except (ValueError, PlurkError) as e:
+            print(f"GAGAL: {e}")
+            return 1
+        return 0
     if args.perintah == "kabari":
         from app import notifikasi
 
