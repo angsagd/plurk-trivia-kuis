@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3, 5, dan 8 selesai; tahap 4 hampir selesai; tahap 6 siap di sisi repo (27 Nov 2026).** Sisa tahap 4: satu sesi penuh di akun uji (mode uji privat). Sisa tahap 6: pemasangan di VPS (`docs/deploy.md`). Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–5 dan 8 selesai; tahap 6 siap di sisi repo (27 Nov 2026).** Sisa tahap 6: pemasangan di VPS (`docs/deploy.md`); lalu tahap 7. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -272,6 +272,7 @@ Bot menjawab mention di **luar thread kuis** sebagai alat bantu informasi. Fitur
 - Variasi jawaban ada di tabel `templates` (bisa diubah di Kontrol & pengaturan → Template): `perintah_jadwal_berlangsung`, `perintah_rank_kosong`, `perintah_rank_satu` (peringkat #1, tanpa "selisih"), `perintah_klasemen_kosong`. Isian yang dikenal tapi tidak relevan diisi kosong (tidak pernah tampil "{isian}" mentah).
 - `rekor`: skor mingguan tertinggi (skor + koreksi) dan jawaban benar tercepat = detik dari soal tampil sampai balasan benar. `streak`: sesi selesai berturut-turut (yang sempat menjalankan soal) dengan ≥ 1 kemenangan; sesi yang masih berjalan tidak memutus streak. `statistik`: total benar + fase paling sering.
 - Error di langkah 5/9 tidak pernah mengganggu sesi (ditangkap, dicatat, notifikasi).
+- **Sesi penuh di Plurk asli (27 Nov 2026, 00.10–00.51 WIB)**, akun uji `triviatest`, mode uji privat untuk angsagd & indotrivia, database terpisah `uji_real.db`: 10 soal; 6 terjawab di fase Soal/Clue 1/2/3 dengan poin sesuai rumus (12, 3, 4, 5, 11, 3), 4 tanpa pemenang; satu siklus sepi → "Kuis menunggu peserta" → aktif lagi; status balasan `salah`/`benar`/`lewat_batas` muncul; ranking + farewell terkirim. 56 posting outbox, semua terkirim tanpa percobaan ulang; 53 balasan bot di thread = 53 baris outbox (tidak ada posting ganda). Dua clue identik untuk dua soal berbeda (`===== ====`) diterima tanpa anti-flood. Perintah `rank` & `jadwal` dari mention sungguhan **dijawab di Plurk**.
 - Dry run dengan Plurk asli (27 Nov 2026): mention `@triviatest rank` (di plurk sendiri) dan `@triviatest jadwal` (di balasan plurk indotrivia) terbaca, lolos cek teman, dan jawabannya benar. Balasan sungguhan ke Plurk belum dikirim.
 
 ### Kebutuhan Plurk API (terbukti di tahap 4)
@@ -442,7 +443,7 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 | 1 | Aturan inti `app/core/` | Semua tes aturan lulus |
 | 2 | Database: model, migrasi pertama, CLI `seed` | Bank soal dari `private/bank_soal/` terimpor dengan nama topik dari nama file; impor ulang tidak menggandakan |
 | 3 | Mesin bot dengan `FakePlurk` + jam palsu + simulator | Mekanik hold/active/die lulus semua skenario tes; dua thread bersamaan berjalan benar; tes ketahanan lulus |
-| 4 | `RealPlurk` + mode uji privat | Sesi penuh di akun uji; urutan ID, batas karakter, tampilan clue terverifikasi; cara membaca mention dan status pertemanan terbukti |
+| 4 | `RealPlurk` + mode uji privat | Sesi penuh di akun uji; urutan ID, batas karakter, tampilan clue terverifikasi; cara membaca mention dan status pertemanan terbukti · **selesai 27 Nov 2026** |
 | 5 | Admin web 8 halaman | Semua fungsi mockup jalan di Mac |
 | 6 | Produksi: VPS, Traefik, backup, notifikasi | HTTPS jalan; healthcheck hijau; backup harian ada |
 | 7 | Uji coba 1–2 hari (mode uji, akun asli) → go-live | Sesi berjalan sesuai jadwal tanpa campur tangan |
