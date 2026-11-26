@@ -22,13 +22,14 @@ class Jadwal:
     def hari_aktif_pada(self, d: date) -> bool:
         return d.weekday() in self.hari_aktif
 
-    def slot_sesi(self, now: datetime) -> int | None:
-        """Nomor sesi (1, 2, ...) bila `now` tepat di menit slot sesi pada hari aktif, selain itu None."""
+    def slot_sesi(self, now: datetime, toleransi_menit: int = 0) -> int | None:
+        """Nomor sesi (1, 2, ...) bila `now` berada di menit slot sesi pada hari aktif (atau paling lambat
+        `toleransi_menit` sesudahnya, untuk tick yang terlewat karena restart); selain itu None."""
         if not self.hari_aktif_pada(now.date()):
             return None
-        hm = now.time().replace(second=0, microsecond=0)
         for i, jam in enumerate(self.jam_sesi, start=1):
-            if hm == jam:
+            mulai = datetime.combine(now.date(), jam, tzinfo=now.tzinfo)
+            if mulai <= now < mulai + timedelta(minutes=toleransi_menit + 1):
                 return i
         return None
 

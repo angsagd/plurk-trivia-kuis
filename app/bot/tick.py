@@ -1,28 +1,85 @@
-"""Satu tick bot. Tahap 2: catat last_tick_at / heartbeat di bot_state.
-Urutan kerja lengkap (outbox, thread, perintah) menyusul di tahap 3; lihat CLAUDE.md."""
+"""Satu tick bot (urutan kerja: lihat CLAUDE.md "Urutan kerja satu tick").
+Langkah 5 (mention) dan 9 (antrean perintah) dibuat di tahap 8; posting hari libur terjadwal di tahap 5."""
 
 import logging
+import random
+import time
+from collections.abc import Callable
 from datetime import datetime
 
 from sqlalchemy import Engine
 
-from app.clock import SystemClock
-from app.db import sesi_db
+from app.bot import engine as mesin
+from app.bot.outbox import Pengirim
+from app.bot.pengaturan import muat_pengaturan
+from app.clock import Clock, FakeClock, SystemClock
+from app.db import get_sessionmaker, sesi_db
 from app.models import BotState
+from app.plurk.client import PlurkClient
 
 log = logging.getLogger(__name__)
 
+TERIMA_TEMAN_TIAP = 10
 
-def jalankan_tick(now: datetime, engine: Engine) -> None:
-    with sesi_db(engine) as db:
+
+def jalankan_tick(
+    now: datetime,
+    engine: Engine,
+    plurk: PlurkClient,
+    *,
+    clock: Clock | None = None,
+    tidur: Callable[[float], None] = time.sleep,
+    rng: random.Random | None = None,
+) -> None:
+    clock = clock or FakeClock(now)
+    with get_sessionmaker(engine)() as db:
+        # 1. detak
         st = db.get_one(BotState, 1)
-        # 1. last_tick_at = sekarang
-        st.last_tick_at = now
-        st.heartbeat_at = SystemClock().now()
+        st.last_tick_at, st.heartbeat_at = now, SystemClock().now()
         st.tick_count += 1
+        db.commit()
         log.info(
             "tick #%d %s WIB, status bot: %s", st.tick_count, now.strftime("%a %Y-%m-%d %H:%M"), st.status
         )
+
+        p = muat_pengaturan(db)
+        pengirim = Pengirim(
+            plurk,
+            clock,
+            maks_per_tick=p.maks_posting_per_tick,
+            jeda_detik=p.jeda_posting_detik,
+            maks_gagal=p.maks_gagal_kirim,
+            tidur=tidur,
+        )
+        # 2. lanjutkan rangkaian posting yang tertunda
+        pengirim.kirim(db)
+        # 3. berhenti -> selesai
+        db.refresh(st)
+        if st.status == "berhenti":
+            return
+        # 4. terima pertemanan tiap 10 tick
+        if st.tick_count % TERIMA_TEMAN_TIAP == 0:
+            try:
+                plurk.accept_friends()
+            except Exception:
+                log.exception("accept_friends gagal")
+
+        k = mesin.Konteks(db, plurk, pengirim, p, now, plurk.whoami().id, rng or random.Random())
+        # 7. majukan setiap thread yang belum die (juga di hari libur, agar thread yang melewati
+        #    tengah malam tetap selesai). Thread lain tetap diproses walau satu thread error.
+        for sesi in mesin.thread_hidup(db):
+            try:
+                mesin.majukan_thread(k, sesi)
+            except Exception as e:
+                db.rollback()
+                log.exception("thread sesi %d gagal", sesi.id)
+                catat_error(engine, f"sesi {sesi.id}: {type(e).__name__}: {e}")
+        # 6/8. hari aktif + status aktif + slot sesi tiba -> buka thread baru (jeda: tidak)
+        db.refresh(st)
+        if st.status == "aktif":
+            slot = p.jadwal.slot_sesi(now, p.toleransi_slot_menit)
+            if slot is not None:
+                mesin.buka_sesi(k, slot)
 
 
 def catat_error(engine: Engine, pesan: str) -> None:

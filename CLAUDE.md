@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0, 1, dan 2 selesai (26 Nov 2026)**; berikutnya tahap 3. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3 selesai (26 Nov 2026)**; berikutnya tahap 4. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -78,7 +78,8 @@ Aturan:
 - `.env.dev`: `PLURK_MODE=fake`, `FAKE_NOW=2026-11-30T11:58` (opsional), `TICK_SECONDS=5` (jam palsu maju 1 menit per tick), `DB_PATH=/app/data/dev.db`.
 - Database dev di **named volume**, bukan folder Mac (penguncian SQLite di folder bersama Mac tidak andal).
 - Dev: kontainer `bot` menjalankan `alembic upgrade head` otomatis sebelum loop (hanya di `compose.override.yml`; produksi tetap eksplisit).
-- CLI (`docker compose run --rm bot python -m app.cli …`): `seed --dir private/bank_soal` (impor bank soal lokal + pemain contoh), `tick --now "…"`, `simulasi --pemain 8 --benar 0.3`, `thread`, `buat-admin`, `health`.
+- CLI (`docker compose run --rm bot python -m app.cli …`): `seed --dir private/bank_soal` (impor bank soal lokal + pemain contoh), `status aktif|jeda|berhenti|hentikan`, `tick --now "…"`, `simulasi --pemain 8 --benar 0.3 [--balas 0.5]`, `thread [--sesi N]`, `buat-admin`, `health`.
+- Coba sesi di dev: `docker compose up -d` → `… run --rm bot python -m app.cli status aktif` → `… run --rm -T bot timeout 150 python -m app.cli simulasi` → `… run --rm bot python -m app.cli thread`. FakePlurk dev disimpan di `data/fakeplurk.db` (dibagi proses bot & CLI); hapus file itu untuk mulai bersih.
 - Sebelum produksi: satu sesi penuh dengan `PLURK_MODE=real` memakai **akun Plurk uji + mode uji privat**.
 
 ### Deployment
@@ -97,7 +98,7 @@ app/
   config.py  db.py  models.py  clock.py  cli.py  bank_soal.py
   core/      matching.py judging.py scoring.py clues.py validator.py selection.py schedule.py
   plurk/     client.py real.py fake.py
-  bot/       loop.py tick.py engine.py schedule.py outbox.py messages.py
+  bot/       loop.py tick.py engine.py outbox.py messages.py pengaturan.py peringkat.py simulator.py
   admin/     main.py auth.py routes/ templates/ static/
 alembic/  contoh/  tests/  scripts/backup.sh  tools/validasi_soal.py
 private/   ← TIDAK di-commit: bank_soal/ (soal asli), laporan/
@@ -246,6 +247,21 @@ Bot menjawab mention di **luar thread kuis** sebagai alat bantu informasi. Fitur
 ### Kebutuhan Plurk API (harus dibuktikan di tahap 4)
 - Membaca mention baru: plurk teman di timeline bot hampir pasti terbaca; mention di **balasan** pada plurk yang tidak diikuti bot belum tentu tersedia lewat API. Jika tidak, fitur tetap jalan dengan cakupan plurk yang terbaca saja.
 - Mengecek status pertemanan pemilik plurk dan pemain (cache daftar teman, diperbarui berkala).
+
+### Keputusan implementasi tahap 3 (perlu dikonfirmasi pemilik proyek)
+
+- **Jatah posting per tick = 2** (pengaturan `maks_posting_per_tick`), dibagi semua thread. Akibatnya 01-02-03 terkirim dalam 2 tick, rangkaian 3 posting (mis. pemenang + ranking + farewell) selesai di tick berikutnya, dan thread yang berjalan bersamaan bisa tertunda 1 menit. Naikkan ke 3 bila ingin 01-02-03 dalam satu tick.
+- Status thread disimpan saat keputusan dibuat; langkah berikutnya thread itu menunggu sampai seluruh posting miliknya terkirim (pending = tidak maju).
+- Siklus tanpa balasan ketika umur thread sudah ≥ 60 menit → langsung `die` (posting 10b2 dilewati, karena balasan sesudah menit 60 tidak bisa lagi mengaktifkan thread).
+- Batas umur dibandingkan dengan waktu posting balasan; pemicu `active` dalam hold = balasan dengan ID > balasan terakhir yang terbaca saat thread masuk hold (awal: semua balasan).
+- Siklus baru (04) dimulai dari balasan terakhir yang terbaca saat keputusan; balasan setelahnya dihitung untuk cek langkah 10.
+- 10 soal dipilih saat sesi dibuka, tetapi `used_cycle`/`times_used` baru dicatat saat soal **ditampilkan**; soal yang tak sempat tampil kembali ke bank.
+- Thread yang belum `die` tetap diproses di hari libur (mis. melewati tengah malam); hari libur hanya mencegah sesi baru.
+- Sesi boleh dibuka sampai `toleransi_slot_menit` (5) setelah jam slot bila tick terlewat karena restart; satu slot satu sesi (`play_date`, `slot` unik).
+- Outbox gagal 5× → `failed`; thread pemiliknya langsung `die` tanpa posting lagi dan `last_error` diisi. Error apa pun dari Plurk menghentikan pengiriman di tick itu (urutan rangkaian terjaga). Token ditolak → status bot `berhenti`.
+- Teks yang melebihi `batas_teks` dipotong dengan `…`. Template bawaan ada di `app/bot/messages.py`; tabel `templates` menimpanya per key.
+- `PlurkClient.get_responses(plurk_id, setelah_id)` mengembalikan balasan dengan ID > `setelah_id`; RealPlurk yang menerjemahkan ke offset API.
+- Hentikan sekarang: semua thread `die` (langkah 11 diantre) lalu status bot `berhenti`; outbox tetap dikirim di langkah 2 tick berikutnya.
 
 ## Penilaian jawaban
 
@@ -407,10 +423,11 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - `CLAUDE.md` — dokumen ini
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
+- Tahap 3: `app/plurk/` (`client.py` antarmuka + error, `fake.py` FakePlurk SQLite, `real.py` stub), `app/bot/` (`engine.py` mesin thread, `outbox.py`, `tick.py`, `messages.py`, `pengaturan.py`, `peringkat.py`, `simulator.py`), CLI `status`/`tick`/`simulasi`/`thread`
 - Tahap 2: `app/db.py` (SQLite WAL, `WaktuWIB`, `sesi_db`), `app/models.py` (19 tabel), `alembic/` (migrasi `skema awal`), `app/bank_soal.py` (impor topik), CLI `seed` & `buat-admin`; tick menulis `bot_state`, healthcheck bot membaca `bot_state.heartbeat_at`
 - Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
 - `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
-- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

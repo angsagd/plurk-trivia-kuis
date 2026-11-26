@@ -84,8 +84,10 @@ def test_cli_health_bot(db_path, engine):
     assert cli.main(["health", "bot"]) == 1  # belum pernah tick
     from app.bot.tick import jalankan_tick
     from app.clock import SystemClock
+    from app.plurk.fake import FakePlurk
 
-    jalankan_tick(SystemClock().now(), engine)
+    clock = SystemClock()
+    jalankan_tick(clock.now(), engine, FakePlurk(clock))
     assert cli.main(["health", "bot"]) == 0
 
 
