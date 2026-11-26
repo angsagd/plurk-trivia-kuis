@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0 selesai (26 Nov 2026)**; berikutnya tahap 1. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0 dan 1 selesai (26 Nov 2026)**; berikutnya tahap 2. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -94,7 +94,7 @@ Aturan:
 ```
 app/
   config.py  db.py  models.py  clock.py  cli.py
-  core/      matching.py scoring.py clues.py validator.py selection.py
+  core/      matching.py judging.py scoring.py clues.py validator.py selection.py schedule.py
   plurk/     client.py real.py fake.py
   bot/       loop.py tick.py engine.py schedule.py outbox.py messages.py
   admin/     main.py auth.py routes/ templates/ static/
@@ -104,7 +104,8 @@ private/   ← TIDAK di-commit: bank_soal/ (soal asli), laporan/
 Dockerfile  compose.yml  compose.override.yml  compose.prod.yml  .env.example  pyproject.toml
 ```
 
-`tools/validasi_soal.py` adalah validator awal yang sudah teruji; pindahkan logikanya ke `app/core/validator.py` dan `app/core/matching.py`.
+`tools/validasi_soal.py` adalah CLI tipis di atas `app/core/validator.py` (bisa dijalankan dengan `python3` biasa di laptop, tanpa Docker).
+`app/core/` hanya memakai pustaka standar Python; `bot/schedule.py` nanti hanya merangkai `core/schedule.py` dengan pengaturan dari database.
 
 ---
 
@@ -248,7 +249,9 @@ Bot menjawab mention di **luar thread kuis** sebagai alat bantu informasi. Fitur
 ## Penilaian jawaban
 
 - Pemenang = jawaban benar **pertama menurut urutan ID balasan**, bukan waktu bot memeriksa.
-- Setiap balasan bot (soal/clue) adalah **penanda fase** (`marker_ids`). Fase sebuah jawaban = posisinya di antara penanda. Jawaban sebelum soal muncul → `di_luar_soal`; setelah pemenang ditetapkan → diabaikan.
+- Setiap balasan bot (soal/clue) adalah **penanda fase** (`marker_ids`). Fase sebuah jawaban = posisinya di antara penanda. Jawaban sebelum soal muncul, setelah pemenang ditetapkan, atau setelah jawaban dibuka → `di_luar_soal`.
+- Fungsi: `core.judging.nilai_balasan()` — murni dan deterministik, dipanggil ulang tiap tick dengan semua balasan yang sudah terbaca.
+- Urutan pemeriksaan: balasan bot dibuang → `diblokir` → `di_luar_soal` → `lewat_batas` → `terlalu_panjang` → `benar`/`salah`. Balasan yang terlalu panjang tetap dihitung dalam jatah 3 balasan per fase.
 - Buang balasan bot sendiri dan pemain yang diblokir (`diblokir`).
 - Hanya **3 balasan pertama per pemain per fase** yang dinilai; sisanya `lewat_batas`.
 - Balasan **> 40 karakter** tidak dinilai (`terlalu_panjang`); batas bisa diatur di admin.
@@ -283,7 +286,7 @@ Skor disimpan per baris di `scores` (`play_date`, `week_start`); peringkat = pen
   - `nama_topik` = huruf/angka, antar kata dipisah **satu** garis bawah.
   - Nama topik: garis bawah → spasi, huruf awal tiap kata → kapital; kata yang sudah memuat huruf kapital dibiarkan apa adanya. `trivia_04_sejarah_dunia.txt` → "Sejarah Dunia"; `trivia_07_film_dan_TV.txt` → "Film Dan TV".
   - Nama file yang tidak sesuai format ditolak sebelum isi divalidasi.
-  - Identitas topik = nama topik (tanpa membedakan huruf besar/kecil). Unggah file dengan nama topik yang sudah ada → otomatis memperbarui topik itu; tidak ada pilihan "topik baru / perbarui" di admin. Nomor yang sudah dipakai topik lain → ditolak.
+  - Identitas topik = nama topik (tanpa membedakan huruf besar/kecil). Unggah file dengan nama topik yang sudah ada → otomatis memperbarui topik itu; tidak ada pilihan "topik baru / perbarui" di admin. Nomor yang sudah dipakai topik lain → ditolak. Nama topik sudah ada tetapi nomornya berbeda → ditolak (ubah nomor lewat Ganti nama).
   - Fungsi referensi: `topik_dari_nama_file()` di `tools/validasi_soal.py`.
 - **Ganti nama topik** (tombol di halaman Bank soal): admin mengetik nama file baru dengan format yang sama; nomor dan/atau nama boleh berubah.
   - Divalidasi: format nama file, nama topik dan nomor tidak dipakai topik lain, dan harus benar-benar berbeda dari yang lama.
@@ -298,7 +301,8 @@ Skor disimpan per baris di `scores` (`play_date`, `week_start`); peringkat = pen
   2. Soal acak dengan `used_cycle` < `cycle` topik.
   3. Topik habis → `cycle` topik itu naik satu (diputar ulang topik itu saja).
   4. Topik yang sama boleh muncul berkali-kali dalam satu sesi.
-  5. Tolak kandidat bila jawabannya tertulis (kata utuh) di soal/clue soal lain di sesi itu, atau sebaliknya (maks 50 percobaan).
+  5. Tolak kandidat bila jawabannya tertulis (kata utuh) di soal/clue soal lain di sesi itu, atau sebaliknya; dua soal berjawaban sama juga ditolak. Maks 50 percobaan per soal; bila tetap bentrok, kandidat terakhir dipakai dan dicatat sebagai peringatan.
+  - Fungsi: `core.selection.pilih_soal()`; mengembalikan `cycle_baru` per topik dan `used_cycle` per soal untuk disimpan pemanggil. Soal thread lain yang sedang berjalan dikirim lewat `sudah_ada`.
   6. "Lewati soal" dari admin mengganti soal aktif dengan aturan yang sama.
 - Format contoh (publik): `contoh/trivia_99_contoh.txt`. Bank soal asli ada di `private/bank_soal/` (tidak di-commit).
 
@@ -394,8 +398,9 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
 - `app/bot/heartbeat.py` — **sementara**: penanda tick terakhir berupa file `data/bot_heartbeat`; di tahap 2 diganti `bot_state.last_tick_at`
-- `tools/validasi_soal.py` — validator bank soal (+ `normalisasi()`, `pola_kata_utuh()`, `cocok()`); logikanya dipindah ke `app/core/` di tahap 1
-- `tests/` — `test_validasi_soal.py`, `test_fondasi.py`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
+- `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_tools.py`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`
