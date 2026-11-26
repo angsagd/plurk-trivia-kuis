@@ -1,0 +1,4 @@
+# Hanya untuk pengembangan & tes (image dev: build arg INSTALL_DEV=true).
+pytest>=8.3,<9
+httpx2>=2.16,<3
+ruff>=0.8,<1

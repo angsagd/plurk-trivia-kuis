@@ -24,6 +24,7 @@ Pemakaian:
     python3 validasi_soal.py bank_soal.txt
     python3 validasi_soal.py bank_soal.txt --laporan laporan.csv --bersih bank_bersih.txt
 """
+
 import argparse
 import csv
 import os
@@ -60,15 +61,24 @@ def rapikan_jawaban(jawaban: str) -> str:
 
 
 # Huruf yang tidak terurai lewat NFKD (bukan huruf + tanda aksen).
-_HURUF_KHUSUS = str.maketrans({
-    "ð": "d", "đ": "d", "þ": "th", "ø": "o", "ł": "l", "ı": "i",
-    "æ": "ae", "œ": "oe", "ß": "ss",
-})
+_HURUF_KHUSUS = str.maketrans(
+    {
+        "ð": "d",
+        "đ": "d",
+        "þ": "th",
+        "ø": "o",
+        "ł": "l",
+        "ı": "i",
+        "æ": "ae",
+        "œ": "oe",
+        "ß": "ss",
+    }
+)
 
 # Pemisah antar kata jawaban: 0-3 karakter spasi/tanda baca (bukan huruf, bukan angka).
 # "bung karno", "bung-karno", "bung - karno", "bungkarno" cocok; "bung 12345 karno" tidak.
 MAKS_PEMISAH = 3
-_PEMISAH = r"[^a-z0-9]{0,%d}" % MAKS_PEMISAH
+_PEMISAH = rf"[^a-z0-9]{{0,{MAKS_PEMISAH}}}"
 
 
 def normalisasi(teks: str) -> str:
@@ -99,7 +109,7 @@ def normal_teks(t: str) -> str:
 
 def validasi(path):
     masalah = []  # (baris, tingkat, kode, pesan, isi)
-    valid = []    # (baris, soal, clue, jawaban)
+    valid = []  # (baris, soal, clue, jawaban)
     total = 0
     soal_terlihat = {}
 
@@ -111,8 +121,15 @@ def validasi(path):
             total += 1
             bagian = baris.split("|")
             if len(bagian) != 3:
-                masalah.append((no, "ERROR", "KOLOM",
-                                f"harus 3 kolom (soal|clue|jawaban), ditemukan {len(bagian)}", baris))
+                masalah.append(
+                    (
+                        no,
+                        "ERROR",
+                        "KOLOM",
+                        f"harus 3 kolom (soal|clue|jawaban), ditemukan {len(bagian)}",
+                        baris,
+                    )
+                )
                 continue
 
             soal, clue, jawaban = (b.strip() for b in bagian)
@@ -169,7 +186,9 @@ def main():
     ap.add_argument("file", help="file bank soal (soal|clue|jawaban per baris)")
     ap.add_argument("--laporan", help="tulis semua masalah ke file CSV")
     ap.add_argument("--bersih", help="tulis soal yang lolos (tanpa ERROR) ke file baru, jawaban dirapikan")
-    ap.add_argument("--tampil", type=int, default=20, help="jumlah masalah yang ditampilkan di layar (default 20)")
+    ap.add_argument(
+        "--tampil", type=int, default=20, help="jumlah masalah yang ditampilkan di layar (default 20)"
+    )
     args = ap.parse_args()
 
     try:
@@ -211,7 +230,7 @@ def main():
 
     if masalah:
         print(f"\nContoh masalah (maks {args.tampil}):")
-        for no, tingkat, kode, pesan, isi in masalah[: args.tampil]:
+        for no, tingkat, _kode, pesan, isi in masalah[: args.tampil]:
             potong = isi if len(isi) <= 70 else isi[:67] + "..."
             print(f"  baris {no:>5} [{tingkat}] {pesan}")
             print(f"              {potong}")

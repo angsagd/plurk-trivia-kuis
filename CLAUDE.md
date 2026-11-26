@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026), kode belum ditulis. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0 selesai (26 Nov 2026)**; berikutnya tahap 1. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -68,7 +68,8 @@ Aturan:
 ### File compose
 
 - `compose.yml` — dasar (service admin + bot, volume `data`, healthcheck, restart).
-- `compose.override.yml` — dev, otomatis dibaca: `.env.dev`, `--reload`, port `8000:8000`, kode `./app` di-mount, `./private/bank_soal` di-mount read-only ke `/app/private/bank_soal`.
+- `compose.override.yml` — dev, otomatis dibaca: `.env.dev`, build arg `INSTALL_DEV=true` (pytest, ruff, httpx2), `--reload`, port `8000:8000`, `./app`, `./tests`, `./tools`, `./contoh`, `pyproject.toml` di-mount (tes & lint tanpa rebuild), `./private/bank_soal` di-mount read-only ke `/app/private/bank_soal`.
+- Dependensi di `requirements.txt` (produksi) dan `requirements-dev.txt` (dev); `pyproject.toml` berisi konfigurasi pytest & ruff. Lint: `docker compose run --rm bot ruff check .` dan `ruff format .`.
 - `compose.prod.yml` — produksi: label Traefik dari variabel `.env` (`${ADMIN_HOST}`, `${TRAEFIK_NETWORK}`, `${TRAEFIK_CERTRESOLVER}`), network Traefik eksternal, batas log 3 × 10 MB.
 - Produksi dijalankan dengan `docker compose -f compose.yml -f compose.prod.yml …`.
 
@@ -390,7 +391,11 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 ## Isi repo saat ini
 
 - `CLAUDE.md` — dokumen ini
-- `tools/validasi_soal.py` — validator bank soal (+ `pola_kata_utuh()`)
+- Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
+- `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
+- `app/bot/heartbeat.py` — **sementara**: penanda tick terakhir berupa file `data/bot_heartbeat`; di tahap 2 diganti `bot_state.last_tick_at`
+- `tools/validasi_soal.py` — validator bank soal (+ `normalisasi()`, `pola_kata_utuh()`, `cocok()`); logikanya dipindah ke `app/core/` di tahap 1
+- `tests/` — `test_validasi_soal.py`, `test_fondasi.py`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

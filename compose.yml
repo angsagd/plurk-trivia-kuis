@@ -1,0 +1,37 @@
+# Dasar untuk dev dan produksi.
+#   Dev       : docker compose up            (otomatis + compose.override.yml)
+#   Produksi  : docker compose -f compose.yml -f compose.prod.yml up -d
+name: plurk-trivia-kuis
+
+x-app: &app
+  image: plurk-trivia-kuis
+  build:
+    context: .
+  volumes:
+    - data:/app/data
+  restart: unless-stopped
+
+services:
+  admin:
+    <<: *app
+    command: ["uvicorn", "app.admin.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.cli", "health", "admin"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  bot:
+    <<: *app
+    command: ["python", "-m", "app.bot.loop"]
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.cli", "health", "bot"]
+      interval: 60s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+
+volumes:
+  data:

@@ -1,0 +1,30 @@
+# Produksi di VPS, di belakang Traefik. Semua nilai spesifik server dibaca dari .env.
+services:
+  admin:
+    env_file: .env
+    environment:
+      FORWARDED_ALLOW_IPS: "*"   # hanya Traefik yang bisa menjangkau port 8000
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:?isi TRAEFIK_NETWORK di .env}
+      - traefik.http.routers.plurk-trivia-kuis-admin.rule=Host(`${ADMIN_HOST:?isi ADMIN_HOST di .env}`)
+      - traefik.http.routers.plurk-trivia-kuis-admin.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.plurk-trivia-kuis-admin.tls=true
+      - traefik.http.routers.plurk-trivia-kuis-admin.tls.certresolver=${TRAEFIK_CERTRESOLVER:?isi TRAEFIK_CERTRESOLVER di .env}
+      - traefik.http.services.plurk-trivia-kuis-admin.loadbalancer.server.port=8000
+    logging: &log
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  bot:
+    env_file: .env
+    logging: *log
+
+networks:
+  traefik:
+    name: ${TRAEFIK_NETWORK:?isi TRAEFIK_NETWORK di .env}
+    external: true

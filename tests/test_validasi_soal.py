@@ -1,5 +1,6 @@
 """Tes aturan pencocokan jawaban & nama file di tools/validasi_soal.py.
 Hanya memakai data karangan (lihat contoh/trivia_99_contoh.txt), tidak pernah soal dari private/."""
+
 import sys
 from pathlib import Path
 

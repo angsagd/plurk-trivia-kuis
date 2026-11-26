@@ -1,0 +1,26 @@
+# Pengembangan di Mac (dibaca otomatis oleh `docker compose`).
+x-dev: &dev
+  build:
+    context: .
+    args:
+      INSTALL_DEV: "true"
+  env_file: .env.dev
+  restart: "no"
+  volumes:
+    - data:/app/data                     # named volume, bukan folder Mac (penguncian SQLite)
+    - ./app:/app/app
+    - ./tests:/app/tests
+    - ./tools:/app/tools
+    - ./contoh:/app/contoh:ro
+    - ./pyproject.toml:/app/pyproject.toml:ro
+    - ./private/bank_soal:/app/private/bank_soal:ro
+
+services:
+  admin:
+    <<: *dev
+    command: ["uvicorn", "app.admin.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/app"]
+    ports:
+      - "8000:8000"
+
+  bot:
+    <<: *dev
