@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0 dan 1 selesai (26 Nov 2026)**; berikutnya tahap 2. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0, 1, dan 2 selesai (26 Nov 2026)**; berikutnya tahap 3. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -77,6 +77,7 @@ Aturan:
 
 - `.env.dev`: `PLURK_MODE=fake`, `FAKE_NOW=2026-11-30T11:58` (opsional), `TICK_SECONDS=5` (jam palsu maju 1 menit per tick), `DB_PATH=/app/data/dev.db`.
 - Database dev di **named volume**, bukan folder Mac (penguncian SQLite di folder bersama Mac tidak andal).
+- Dev: kontainer `bot` menjalankan `alembic upgrade head` otomatis sebelum loop (hanya di `compose.override.yml`; produksi tetap eksplisit).
 - CLI (`docker compose run --rm bot python -m app.cli …`): `seed --dir private/bank_soal` (impor bank soal lokal + pemain contoh), `tick --now "…"`, `simulasi --pemain 8 --benar 0.3`, `thread`, `buat-admin`, `health`.
 - Sebelum produksi: satu sesi penuh dengan `PLURK_MODE=real` memakai **akun Plurk uji + mode uji privat**.
 
@@ -93,7 +94,7 @@ Aturan:
 
 ```
 app/
-  config.py  db.py  models.py  clock.py  cli.py
+  config.py  db.py  models.py  clock.py  cli.py  bank_soal.py
   core/      matching.py judging.py scoring.py clues.py validator.py selection.py schedule.py
   plurk/     client.py real.py fake.py
   bot/       loop.py tick.py engine.py schedule.py outbox.py messages.py
@@ -311,7 +312,16 @@ Skor disimpan per baris di `scores` (`play_date`, `week_start`); peringkat = pen
 `settings`, `bot_state` (1 baris), `topics`, `questions`, `players`, `sessions`, `session_questions`, `responses`, `scores`, `score_adjustments`, `templates`, `outbox`, `scheduled_posts`, `admin_audit`, `admins`, `commands`, `command_aliases`, `command_responses`, `command_requests`.
 `commands` (key, kind `bawaan`/`statistik`/`kustom`, enabled, show_in_help, template); `command_aliases` (alias unik → command); `command_responses` (respons kustom, dipilih acak); `command_requests` (plurk_id, response_id, player_id, command_id, received_at, status `dijawab`/`cooldown`/`batas_global`/`kedaluwarsa`/`nonaktif`/`bukan_teman`/`diblokir`, sent_at).
 `sessions` menyimpan state per thread: `status` (`hold`/`active`/`die`), `posted_at` (awal umur thread), `step`, `question_count`, `cycle_start_response_id` (penanda awal siklus untuk cek respons), `ever_ran_question`.
-Status balasan: `benar`, `salah`, `lewat_batas`, `terlalu_panjang`, `di_luar_soal`, `diblokir`. Kolom lengkap ada di blueprint.
+Status balasan: `benar`, `salah`, `lewat_batas`, `terlalu_panjang`, `di_luar_soal`, `diblokir`. Kolom lengkap ada di blueprint; `app/models.py` adalah sumber kebenaran.
+
+Keputusan tahap 2 (berbeda/tambahan dari blueprint):
+- Waktu disimpan lewat tipe `WaktuWIB`: teks ISO WIB lebar tetap (`2026-11-30T12:00:00.000000+07:00`); datetime tanpa zona ditolak. `play_date`/`week_start` = `Date`.
+- `bot_state`: tanpa `current_session_id` (thread bisa bersamaan; state ada di `sessions`). Tambahan `heartbeat_at` (jam nyata, untuk healthcheck; `last_tick_at` memakai Clock sehingga bisa jam palsu di dev), `tick_count` (untuk "tiap 10 tick"), `last_error_at`. Baris id=1 dibuat migrasi pertama dengan status `berhenti`.
+- `sessions`: tambahan `last_response_id` (balasan terakhir yang terbaca) dan `test_mode`. `session_questions`: tambahan `reveal_response_id`, `started_at`, `ended_at`. `responses`: tambahan `session_id` (balasan di luar siklus soal tetap tersimpan untuk cek hold/active).
+- `outbox`: tambahan `priority` (0 sesi, 1 jawaban perintah), `session_id`, `no_comments`, `last_error`, `created_at`, `sent_at`.
+- `command_requests`: unik (`plurk_id`, `response_id`; 0 = mention di plurk itu sendiri), status tambahan `antre`, kolom `outbox_id`.
+- Impor topik (`app/bank_soal.impor_topik`, dipakai `seed` dan nanti admin): hanya flush, pemanggil yang commit (untuk pratinjau). Soal yang hilang dari file → `is_active = False` (tidak dihapus); baris error dilewati; soal kembar di file disimpan sekali.
+- `buat-admin`: hanya satu akun; `--reset` untuk ganti password; `--password-stdin` untuk tanpa prompt; password minimal 12 karakter. Pemain contoh `seed` hanya dibuat bila `PLURK_MODE=fake`.
 
 ## Admin web (satu akun)
 
@@ -397,10 +407,10 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - `CLAUDE.md` — dokumen ini
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
-- `app/bot/heartbeat.py` — **sementara**: penanda tick terakhir berupa file `data/bot_heartbeat`; di tahap 2 diganti `bot_state.last_tick_at`
+- Tahap 2: `app/db.py` (SQLite WAL, `WaktuWIB`, `sesi_db`), `app/models.py` (19 tabel), `alembic/` (migrasi `skema awal`), `app/bank_soal.py` (impor topik), CLI `seed` & `buat-admin`; tick menulis `bot_state`, healthcheck bot membaca `bot_state.heartbeat_at`
 - Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
 - `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
-- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_tools.py`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

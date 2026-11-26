@@ -5,9 +5,10 @@ import logging
 import signal
 import threading
 
-from app.bot.tick import jalankan_tick
+from app.bot.tick import catat_error, jalankan_tick
 from app.clock import FakeClock, SystemClock, awal_menit, detik_ke_menit_berikutnya
 from app.config import Settings, get_settings
+from app.db import buat_engine
 
 log = logging.getLogger("app.bot")
 
@@ -15,14 +16,23 @@ log = logging.getLogger("app.bot")
 def jalankan(settings: Settings, berhenti: threading.Event, maks_tick: int | None = None) -> int:
     """Kembalikan jumlah tick yang dijalankan."""
     settings.data_dir.mkdir(parents=True, exist_ok=True)
+    engine = buat_engine(settings.db_path)
     jumlah = 0
+
+    def tick(now) -> None:
+        # Satu tick gagal tidak menghentikan loop; error dicatat ke bot_state.last_error.
+        try:
+            jalankan_tick(now, engine)
+        except Exception as e:
+            log.exception("tick %s gagal", now)
+            catat_error(engine, f"{type(e).__name__}: {e}")
 
     if settings.jam_palsu:
         sistem = SystemClock().now()
         clock = FakeClock(settings.fake_now or awal_menit(sistem))
         log.info("jam palsu mulai %s, 1 tick (= 1 menit) tiap %s detik", clock.now(), settings.tick_seconds)
         while not berhenti.is_set() and (maks_tick is None or jumlah < maks_tick):
-            jalankan_tick(clock.now(), settings.data_dir)
+            tick(clock.now())
             jumlah += 1
             if berhenti.wait(settings.tick_seconds):
                 break
@@ -33,10 +43,11 @@ def jalankan(settings: Settings, berhenti: threading.Event, maks_tick: int | Non
         while not berhenti.is_set() and (maks_tick is None or jumlah < maks_tick):
             if berhenti.wait(detik_ke_menit_berikutnya(clock.now())):
                 break
-            jalankan_tick(awal_menit(clock.now()), settings.data_dir)
+            tick(awal_menit(clock.now()))
             jumlah += 1
 
     log.info("bot berhenti setelah %d tick", jumlah)
+    engine.dispose()
     return jumlah
 
 

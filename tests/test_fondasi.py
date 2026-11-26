@@ -9,8 +9,8 @@ from pydantic import ValidationError
 
 from app import cli
 from app.admin.main import app
-from app.bot import heartbeat
 from app.bot.loop import jalankan
+from app.bot.tick import sehat
 from app.clock import WIB, FakeClock, SystemClock, detik_ke_menit_berikutnya, ke_wib
 from app.config import Settings
 
@@ -55,18 +55,17 @@ def test_config_env_kosong_diabaikan(monkeypatch):
     assert s.fake_now is None and s.tick_seconds == 5 and s.jam_palsu
 
 
-def test_loop_jam_palsu_menjalankan_tick_dan_heartbeat(tmp_path, caplog):
-    s = Settings(db_path=tmp_path / "dev.db", fake_now=datetime(2026, 11, 30, 11, 58), tick_seconds=1)
+def test_loop_jam_palsu_menjalankan_tick(db_path, engine, caplog):
+    s = Settings(db_path=db_path, fake_now=datetime(2026, 11, 30, 11, 58), tick_seconds=1)
     caplog.set_level("INFO")
-    berhenti = threading.Event()
     # maks_tick=1: satu tick, tunggu 1 detik, lalu berhenti.
-    assert jalankan(s, berhenti, maks_tick=1) == 1
-    assert heartbeat.sehat(tmp_path)
+    assert jalankan(s, threading.Event(), maks_tick=1) == 1
+    assert sehat(engine)
     assert "2026-11-30 11:58" in caplog.text
 
 
-def test_loop_berhenti_saat_sinyal(tmp_path):
-    s = Settings(db_path=tmp_path / "dev.db", tick_seconds=30)
+def test_loop_berhenti_saat_sinyal(db_path):
+    s = Settings(db_path=db_path, tick_seconds=30)
     berhenti = threading.Event()
     t = threading.Timer(0.2, berhenti.set)
     t.start()
@@ -74,16 +73,19 @@ def test_loop_berhenti_saat_sinyal(tmp_path):
     t.cancel()
 
 
-def test_heartbeat_basi_tidak_sehat(tmp_path):
-    assert not heartbeat.sehat(tmp_path)
-    (tmp_path / heartbeat.NAMA_FILE).write_text("0")
-    assert not heartbeat.sehat(tmp_path)
+def test_tick_gagal_tidak_menghentikan_loop(tmp_path, caplog):
+    # Database belum dimigrasi: tick gagal, loop tetap jalan dan mencatat error ke log.
+    s = Settings(db_path=tmp_path / "kosong.db", fake_now=datetime(2026, 11, 30, 12, 0), tick_seconds=1)
+    assert jalankan(s, threading.Event(), maks_tick=2) == 2
+    assert "gagal" in caplog.text
 
 
-def test_cli_health_bot(tmp_path, monkeypatch):
-    monkeypatch.setattr(cli, "get_settings", lambda: Settings(db_path=tmp_path / "x.db"))
-    assert cli.main(["health", "bot"]) == 1
-    heartbeat.tulis(tmp_path)
+def test_cli_health_bot(db_path, engine):
+    assert cli.main(["health", "bot"]) == 1  # belum pernah tick
+    from app.bot.tick import jalankan_tick
+    from app.clock import SystemClock
+
+    jalankan_tick(SystemClock().now(), engine)
     assert cli.main(["health", "bot"]) == 0
 
 
