@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–6 dan 8 selesai (27 Nov 2026)**; berikutnya tahap 7 (uji coba 1–2 hari, lalu go-live). Produksi sudah terpasang di VPS dengan akun Plurk **uji**; detail host/akses hanya di catatan lokal `private/laporan/deploy_vps.md` (repo publik). Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–6 dan 8 selesai (27 Nov 2026)**; berikutnya tahap 7 (uji coba 1–2 hari, lalu go-live). Produksi sudah terpasang di VPS dan memakai akun Plurk produksi **indotrivia** (sejak 27 Nov 2026; uji coba tahap 7 dengan mode uji privat); detail host/akses hanya di catatan lokal `private/laporan/deploy_vps.md` (repo publik). Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -85,7 +85,7 @@ Aturan:
 
 ### Deployment
 
-Status produksi (27 Nov 2026): terpasang di VPS Hostinger (x86_64, template Docker + Traefik). Traefik memakai `network_mode: host` dengan entrypoint khusus aplikasi ini di port 8443 dan certresolver Let's Encrypt; repo di home user non-root yang punya grup `docker` (SSH root dimatikan); zona waktu server bukan WIB, jadi jam cron dikonversi. Backup harian 03.30 WIB, disimpan di VPS saja; tanpa Telegram. Bot masih memakai akun Plurk uji dan status awal `berhenti`.
+Status produksi (27 Nov 2026): terpasang di VPS Hostinger (x86_64, template Docker + Traefik). Traefik memakai `network_mode: host` dengan entrypoint khusus aplikasi ini di port 8443 dan certresolver Let's Encrypt; repo di home user non-root yang punya grup `docker` (SSH root dimatikan); zona waktu server bukan WIB, jadi jam cron dikonversi. Backup harian 03.30 WIB, disimpan di VPS saja; tanpa Telegram. Bot memakai akun Plurk produksi (indotrivia); bank soal 10 topik × 500 soal sudah diunggah.
 
 - Kode: Mac → GitHub (**repo publik**, tanpa rahasia dan tanpa soal) → VPS (`git clone`/`git pull` biasa, tidak perlu deploy key).
 - Bank soal produksi diunggah lewat halaman admin dari file di laptop; `.env` produksi dibuat langsung di VPS.
@@ -456,7 +456,6 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - Rumus skor final.
 - Gabung posting 02 (Top 10) dan 03 (ajakan) menjadi satu posting atau tidak.
 - Tujuan backup di luar VPS (sementara backup hanya di VPS; diputuskan 27 Nov 2026). Notifikasi Telegram: tidak dipakai (27 Nov 2026).
-- Akun Plurk produksi untuk go-live (produksi sementara memakai akun uji).
 - Mention di plurk milik akun yang **bukan** teman bot: apakah alert tetap muncul (tidak menghalangi; mention itu memang diabaikan).
 - Isi awal easter egg kustom (kata kunci dan respons) — dibahas terpisah.
 
