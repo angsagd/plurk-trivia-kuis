@@ -1,0 +1,26 @@
+{% for t in thread %}{% set s = t.sesi %}
+<div style="border:1px solid var(--garis);border-radius:10px;padding:12px;margin-bottom:12px">
+  <div class="spasi" style="justify-content:space-between">
+    <strong>Sesi {{ s.slot }} · {{ t.jam }} WIB · soal {{ s.question_count }} dari {{ s.questions | length }}</strong>
+    <span><span class="lencana {{ 'hijau' if s.status == 'active' else 'kuning' }}">{{ s.status }}</span>
+    <span class="kecil">umur {{ t.umur if t.umur is not none else '—' }} menit · langkah {{ s.step }}</span>
+    {% if s.test_mode %}<span class="lencana kuning">uji</span>{% endif %}</span>
+  </div>
+  {% if t.sq %}{% set q = t.sq.question %}
+  <div class="fase">{% for nama in ['Soal','Clue 1','Clue 2','Clue 3'] %}<span class="{{ 'kini' if t.fase == loop.index0 }}">{{ nama }}</span>{% endfor %}
+    {% if t.sq.step == 'selesai' %}<span class="kini">{{ 'Terjawab' if t.sq.winner_player_id else 'Jawaban dibuka' }}</span>{% endif %}</div>
+  <div><strong>Soal #{{ t.sq.number }}:</strong> {{ q.soal }}</div>
+  <div class="kecil">Clue 1: {{ q.clue }} · Clue 2: <span class="mono">{{ t.clue2 }}</span> · Clue 3: <span class="mono">{{ t.clue3 }}</span></div>
+  <div class="kecil">Jawaban (hanya admin): <strong>{{ q.jawaban }}</strong> · topik {{ q.topic.name }}</div>
+  {% if t.balasan %}<table style="margin-top:8px"><tr><th>Waktu</th><th>Isi balasan</th><th>Fase</th><th>Status</th></tr>
+    {% for b in t.balasan[-8:] %}<tr><td>{{ b.posted_at.strftime('%H.%M.%S') }}</td><td>{{ b.content }}</td><td>{{ b.phase if b.phase is not none else '' }}</td><td>{{ b.status or '' }}</td></tr>{% endfor %}
+  </table>{% endif %}
+  {% else %}<p class="redup">Belum ada soal tampil (menunggu peserta).</p>{% endif %}
+  <div class="spasi" style="margin-top:8px">
+    {% if t.berikut %}<span class="kecil">Soal berikutnya: {{ t.berikut.question.soal[:70] }}… ({{ t.berikut.question.jawaban }})</span>
+    <form method="post" action="/sesi/{{ s.id }}/lewati" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button>Lewati soal berikutnya</button></form>{% endif %}
+    {% if t.tautan %}<a class="tombol" href="{{ t.tautan }}" target="_blank" rel="noopener">Buka thread di Plurk</a>{% endif %}
+    <a class="tombol" href="/riwayat/{{ s.id }}">Detail</a>
+  </div>
+</div>
+{% else %}<p class="redup">Tidak ada thread berjalan.</p>{% endfor %}

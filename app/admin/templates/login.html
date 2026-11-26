@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masuk · Plurk Trivia Kuis</title><link rel="stylesheet" href="/static/app.css"></head>
+<body>
+<div class="login kartu">
+  <h1>Admin Kuis</h1>
+  <p class="sub" style="margin-bottom:14px">Plurk Trivia Kuis</p>
+  {% if err %}<div class="pesan err">{{ err }}</div>{% endif %}
+  <form method="post" action="/login">
+    <label for="u">Username</label><input id="u" type="text" name="username" autocomplete="username" required autofocus>
+    <label for="p">Password</label><input id="p" type="password" name="password" autocomplete="current-password" required>
+    <label for="t">Kode TOTP (bila aktif)</label><input id="t" type="text" name="totp" inputmode="numeric" autocomplete="one-time-code">
+    <button class="utamakan" style="width:100%">Masuk</button>
+  </form>
+</div>
+</body>
+</html>

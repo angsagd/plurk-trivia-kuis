@@ -1,0 +1,37 @@
+{% from "_makro.html" import csrf_field with context %}
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block judul %}Admin{% endblock %} · Plurk Trivia Kuis</title>
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/htmx.min.js" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" defer></script>
+<script src="/static/app.js" defer></script>
+</head>
+<body hx-headers='{{ {"X-CSRF-Token": csrf} | tojson }}'>
+<div class="tata">
+  <aside class="samping">
+    <div class="merek">Plurk Trivia Kuis<small>Admin</small></div>
+    <nav>
+      {% for key, label, url in [("dashboard","Dashboard","/"),("peringkat","Peringkat","/peringkat"),("soal","Bank soal","/soal"),("pengaturan","Kontrol & pengaturan","/pengaturan"),("libur","Posting hari libur","/libur"),("riwayat","Riwayat sesi","/riwayat"),("perintah","Perintah & easter egg","/perintah"),("log","Log admin","/log")] %}
+      <a href="{{ url }}" class="{{ 'aktif' if aktif == key }}">{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="kecil" style="margin:16px 10px 0">
+      Bot: {% set st = bot.status if bot else '?' %}
+      <span class="lencana {{ {'aktif':'hijau','jeda':'kuning','berhenti':'merah','hentikan':'merah'}.get(st,'') }}">{{ st }}</span><br>
+      Tick terakhir {{ bot.last_tick_at.strftime('%d/%m %H.%M') if bot and bot.last_tick_at else '—' }} WIB
+      {% if mode_uji %}<br><span class="lencana kuning">Mode uji</span>{% endif %}
+      {% if plurk_mode == 'fake' %}<br><span class="lencana biru">FakePlurk (dev)</span>{% endif %}
+    </div>
+    <form method="post" action="/logout">{{ csrf_field() }}<button>Keluar</button></form>
+  </aside>
+  <main class="utama">
+    {% if ok %}<div class="pesan ok">{{ ok }}</div>{% endif %}
+    {% if err %}<div class="pesan err">{{ err }}</div>{% endif %}
+    {% block isi %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

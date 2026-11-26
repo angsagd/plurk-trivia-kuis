@@ -1,0 +1,64 @@
+{% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Perintah & easter egg{% endblock %}
+{% block isi %}
+<div class="kepala"><div><h1>Perintah &amp; easter egg</h1><p class="sub">Bot menjawab mention di luar thread kuis. Fitur tersembunyi, tidak diumumkan ke pemain.</p></div></div>
+<div class="pesan info">Mesin yang membaca dan menjawab mention dibuat di tahap 8. Pengaturan di halaman ini sudah tersimpan dan akan dipakai saat itu.</div>
+<div class="grid g4">
+  <div class="kartu"><form method="post" action="/perintah/fitur">{{ csrf_field() }}
+    <label><input type="checkbox" name="aktif" value="1" {{ 'checked' if p.perintah_aktif }}> Fitur perintah aktif</label>
+    <label>Cooldown per perintah (menit)</label><input type="number" name="cooldown" value="{{ p.perintah_cooldown_menit }}">
+    <label>Batas global (jawaban/jam)</label><input type="number" name="batas" value="{{ p.perintah_batas_global_per_jam }}">
+    <label>Kedaluwarsa antrean (menit)</label><input type="number" name="kedaluwarsa" value="{{ p.perintah_kedaluwarsa_menit }}">
+    <button class="utamakan" style="margin-top:8px">Simpan</button></form></div>
+  <div class="kartu"><div class="kecil">Mention hari ini</div><div class="angka">{{ statistik.mention }}</div></div>
+  <div class="kartu"><div class="kecil">Dijawab</div><div class="angka">{{ statistik.dijawab }}</div></div>
+  <div class="kartu"><div class="kecil">Di antrean</div><div class="angka">{{ statistik.antre }}</div></div>
+</div>
+<div class="grid g3">
+<div class="kartu"><h2>Kata kunci</h2>
+  <table><tr><th>Kata kunci</th><th>Sinonim</th><th>Jenis</th><th>Di bantuan</th><th>Status</th><th></th></tr>
+  {% for c, alias in cmds %}<tr class="{{ 'aktif' if dipilih and c.id == dipilih.id }}"><td class="mono"><strong>{{ c.key }}</strong></td><td class="mono kecil">{{ alias | join(', ') }}</td>
+    <td>{{ jenis[c.kind] }}</td><td>{{ 'ya' if c.show_in_help else '—' }}</td>
+    <td><span class="lencana {{ 'hijau' if c.enabled else '' }}">{{ 'aktif' if c.enabled else 'mati' }}</span></td><td><a href="/perintah?pilih={{ c.id }}">Ubah</a></td></tr>{% endfor %}
+  </table>
+  <details style="margin-top:12px"><summary>+ Tambah kata kunci kustom</summary>
+    <form method="post" action="/perintah-kustom" style="margin-top:8px">{{ csrf_field() }}
+      <label>Kata kunci</label><input type="text" name="key" required>
+      <label>Sinonim (pisahkan dengan koma)</label><input type="text" name="alias">
+      <label>Respons pertama (isian: <span class="mono">{nama}</span>, <span class="mono">{sesi_berikutnya}</span>)</label>
+      <textarea name="respons" data-hitung="hitung-baru" data-batas="{{ p.batas_teks }}" required></textarea><div class="kecil" id="hitung-baru"></div>
+      <label><input type="checkbox" name="bantuan" value="1"> Tampilkan di daftar bantuan</label>
+      <button class="utamakan">Tambah</button></form></details>
+</div>
+{% if dipilih %}
+<div class="kartu"><h2>{{ jenis[dipilih.kind] }} · <span class="mono">{{ dipilih.key }}</span></h2>
+  <form method="post" action="/perintah/{{ dipilih.id }}">{{ csrf_field() }}
+    <label>Sinonim (pisahkan dengan koma)</label><input type="text" name="alias" value="{{ alias_dipilih | reject('equalto', '?') | join(', ') }}" style="width:100%">
+    <label><input type="checkbox" name="aktif" value="1" {{ 'checked' if dipilih.enabled }}> Aktif</label>
+    <label><input type="checkbox" name="bantuan" value="1" {{ 'checked' if dipilih.show_in_help }}> Tampilkan di daftar bantuan</label>
+    {% if dipilih.kind != 'kustom' %}
+    <label>Template jawaban</label><textarea name="template">{{ dipilih.template or '' }}</textarea>
+    <p class="kecil">Isian tersedia: <span class="mono">{{ isian[dipilih.kind] }}</span></p>
+    <div class="kecil">Pratinjau untuk pemain_a:</div><pre class="pratinjau">{{ pratinjau }}</pre>
+    {% endif %}
+    <button class="utamakan">Simpan</button>
+  </form>
+  {% if dipilih.kind == 'kustom' %}
+  <h3>Respons (dipilih acak) · {{ respons | length }}</h3>
+  {% for r in respons %}<div class="spasi" style="justify-content:space-between;border-top:1px solid var(--garis);padding:6px 0"><span style="white-space:pre-wrap">{{ r.body }}</span>
+    <form method="post" action="/perintah/respons/{{ r.id }}/hapus" class="inline">{{ csrf_field() }}<button class="bahaya-btn">Hapus</button></form></div>{% endfor %}
+  <form method="post" action="/perintah/{{ dipilih.id }}/respons">{{ csrf_field() }}
+    <textarea name="isi" data-hitung="hitung-respons" data-batas="{{ p.batas_teks }}" required></textarea><div class="kecil" id="hitung-respons"></div>
+    <button>Tambah respons</button></form>
+  <p class="kecil">Tidak boleh bentrok dengan kata kunci lain · tiap respons maks {{ p.batas_teks }} karakter</p>
+  <form method="post" action="/perintah/{{ dipilih.id }}/hapus" style="margin-top:8px">{{ csrf_field() }}<button class="bahaya-btn" data-yakin="Hapus kata kunci {{ dipilih.key }} beserta semua responsnya?">Hapus kata kunci</button></form>
+  {% endif %}
+  <form method="post" action="/perintah/{{ dipilih.id }}/uji" style="margin-top:8px">{{ csrf_field() }}<button>Kirim uji (privat)</button></form>
+</div>
+{% endif %}
+</div>
+<div class="kartu"><h2>Log perintah <span class="kecil">sesi lebih penting: jawaban menunggu slot posting yang kosong</span></h2>
+  <table><tr><th>Waktu</th><th>Pemain</th><th>Perintah</th><th>Status</th></tr>
+  {% for r, nick, key in log %}<tr><td>{{ r.received_at.strftime('%d/%m %H.%M') }}</td><td>{{ nick or '—' }}</td><td class="mono">{{ key or '—' }}</td><td>{{ r.status }}</td></tr>
+  {% else %}<tr><td colspan="4" class="redup">Belum ada mention.</td></tr>{% endfor %}</table>
+</div>
+{% endblock %}

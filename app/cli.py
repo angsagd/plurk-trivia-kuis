@@ -18,13 +18,11 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import pyotp
 from argon2 import PasswordHasher
 from sqlalchemy import select
 
 from app.bank_soal import impor_topik
-from app.bot import engine as mesin
-from app.bot.outbox import Pengirim
-from app.bot.pengaturan import muat_pengaturan
 from app.bot.simulator import PemainSim, putaran
 from app.bot.tick import jalankan_tick, sehat
 from app.clock import FakeClock, SystemClock, ke_wib
@@ -91,7 +89,7 @@ def seed(folder: str, pemain_contoh: bool) -> int:
     return 1 if gagal else 0
 
 
-def buat_admin(username: str, reset: bool, password_stdin: bool) -> int:
+def buat_admin(username: str, reset: bool, password_stdin: bool, totp: bool = False) -> int:
     if password_stdin:
         password = sys.stdin.readline().rstrip("\n")
     else:
@@ -105,6 +103,7 @@ def buat_admin(username: str, reset: bool, password_stdin: bool) -> int:
 
     now = SystemClock().now()
     hash_ = PasswordHasher().hash(password)
+    rahasia_totp = pyotp.random_base32() if totp else None
     with sesi_db() as db:
         admin = db.scalar(select(Admin).where(Admin.username == username))
         if admin is None:
@@ -113,16 +112,22 @@ def buat_admin(username: str, reset: bool, password_stdin: bool) -> int:
                     "Sudah ada akun admin (proyek ini memakai satu akun). Pakai --reset untuk ganti password."
                 )
                 return 1
-            db.add(Admin(username=username, password_hash=hash_, created_at=now))
+            db.add(Admin(username=username, password_hash=hash_, totp_secret=rahasia_totp, created_at=now))
             aksi = "admin_dibuat"
         elif reset:
             admin.password_hash = hash_
+            if totp:
+                admin.totp_secret = rahasia_totp
             aksi = "admin_password_direset"
         else:
             print(f"Admin '{username}' sudah ada. Pakai --reset untuk ganti password.")
             return 1
         db.add(AdminAudit(at=now, action=aksi, detail={"username": username, "lewat": "cli"}))
     print(f"OK: {aksi.replace('_', ' ')} ({username})")
+    if rahasia_totp:
+        uri = pyotp.TOTP(rahasia_totp).provisioning_uri(name=username, issuer_name="Plurk Trivia Kuis")
+        print("TOTP aktif. Masukkan ke aplikasi authenticator (simpan di tempat aman):")
+        print(uri)
     return 0
 
 
@@ -136,24 +141,12 @@ def _fake(clock) -> FakePlurk:
 
 
 def status(nilai: str) -> int:
+    """'hentikan' adalah permintaan: tick berikutnya mematikan semua thread (langkah 11), lalu berhenti."""
     now = SystemClock().now()
     with sesi_db() as db:
-        st = db.get_one(BotState, 1)
-        if nilai == "hentikan":
-            plurk = buat_plurk(get_settings(), SystemClock())
-            p = muat_pengaturan(db)
-            pengirim = Pengirim(
-                plurk, SystemClock(), maks_per_tick=0, jeda_detik=0, maks_gagal=5, tidur=time.sleep
-            )
-            k = mesin.Konteks(
-                db, plurk, pengirim, p, st.last_tick_at or now, plurk.whoami().id, random.Random()
-            )
-            n = mesin.hentikan_sekarang(k)
-            print(f"{n} thread dihentikan; ranking/farewell dikirim pada tick berikutnya.")
-        else:
-            st.status = nilai
+        db.get_one(BotState, 1).status = nilai
         db.add(AdminAudit(at=now, action=f"bot_{nilai}", detail={"lewat": "cli"}))
-    print(f"Status bot: {'berhenti' if nilai == 'hentikan' else nilai}")
+    print(f"Status bot: {nilai}")
     return 0
 
 
@@ -239,6 +232,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--username", required=True)
     p.add_argument("--reset", action="store_true", help="ganti password admin yang sudah ada")
     p.add_argument("--password-stdin", action="store_true", help="baca password dari stdin (tanpa prompt)")
+    p.add_argument("--totp", action="store_true", help="aktifkan TOTP (kode 6 digit) untuk login admin")
 
     p = sub.add_parser("status", help="ubah status bot")
     p.add_argument("nilai", choices=["aktif", "jeda", "berhenti", "hentikan"])
@@ -266,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
         contoh = not args.tanpa_pemain and get_settings().plurk_mode == "fake"
         return seed(args.dir, contoh)
     if args.perintah == "buat-admin":
-        return buat_admin(args.username, args.reset, args.password_stdin)
+        return buat_admin(args.username, args.reset, args.password_stdin, args.totp)
     if args.perintah == "status":
         return status(args.nilai)
     if args.perintah == "tick":

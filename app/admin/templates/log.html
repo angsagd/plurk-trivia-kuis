@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block judul %}Log admin{% endblock %}
+{% block isi %}
+<div class="kepala"><div><h1>Log admin</h1><p class="sub">Semua aksi admin dan CLI (terbaru dulu)</p></div></div>
+<div class="kartu"><table><tr><th>Waktu (WIB)</th><th>Aksi</th><th>Detail</th></tr>
+{% for b in baris %}<tr><td>{{ b.at.strftime('%d/%m/%Y %H.%M.%S') }}</td><td>{{ b.action }}</td><td class="kecil mono">{{ b.detail | tojson }}</td></tr>
+{% else %}<tr><td colspan="3" class="redup">Belum ada catatan.</td></tr>{% endfor %}</table>
+<div class="spasi" style="margin-top:10px">{% if hal > 1 %}<a class="tombol" href="/log?hal={{ hal - 1 }}">← Lebih baru</a>{% endif %}{% if ada_berikut %}<a class="tombol" href="/log?hal={{ hal + 1 }}">Lebih lama →</a>{% endif %}</div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Dashboard{% endblock %}
+{% block isi %}
+<div class="kepala">
+  <div><h1>Dashboard</h1><p class="sub">{{ hari }} · {{ 'hari aktif' if hari_aktif else 'hari libur' }}</p></div>
+  <div class="spasi">
+    {% for aksi, label, kelas in [("jalankan","Jalankan","utamakan"),("jeda","Jeda setelah sesi ini",""),("hentikan","Hentikan sekarang","bahaya-btn")] %}
+    <form method="post" action="/kontrol/{{ aksi }}" class="inline">{{ csrf_field() }}
+      <button class="{{ kelas }}" {% if aksi == 'hentikan' %}data-yakin="Tutup semua thread yang berjalan sekarang?"{% endif %}>{{ label }}</button></form>
+    {% endfor %}
+  </div>
+</div>
+<div class="grid g4">
+  <div class="kartu"><div class="kecil">Pemain aktif hari ini</div><div class="angka">{{ ringkas.pemain }}</div></div>
+  <div class="kartu"><div class="kecil">Jawaban masuk hari ini</div><div class="angka">{{ ringkas.jawaban }}</div>
+    <div class="kecil">{{ ringkas.diabaikan }} tidak dinilai (batas / terlalu panjang)</div></div>
+  <div class="kartu"><div class="kecil">Soal terjawab hari ini</div><div class="angka">{{ ringkas.terjawab }} / {{ ringkas.tampil }}</div>
+    <div class="kecil">Paling sering terjawab di: {{ ringkas.fase_umum }}</div></div>
+  <div class="kartu"><div class="kecil">Sesi berikutnya</div><div class="angka">{{ berikut[0].strftime('%H.%M') }} WIB</div>
+    <div class="kecil">{{ berikut[0].strftime('%d/%m') }} · sesi {{ berikut[1] }}</div></div>
+</div>
+<div class="grid g3">
+  <div>
+    <div class="kartu">
+      <h2>Thread berjalan</h2>
+      <div hx-get="/partial/thread" hx-trigger="every 5s" hx-swap="innerHTML">{% include "_thread.html" %}</div>
+    </div>
+  </div>
+  <div>
+    <div class="kartu"><h2>Peringatan</h2>
+      {% for jenis, teks in peringatan %}<div class="pesan {{ jenis }}">{{ teks }}</div>{% else %}<p class="redup">Tidak ada peringatan.</p>{% endfor %}
+    </div>
+    <div class="kartu"><h2>Jadwal hari ini</h2>
+      {% for jam, no, ket in jadwal %}<div class="spasi" style="justify-content:space-between"><span>{{ jam }} · Sesi {{ no }}</span><span class="kecil">{{ ket }}</span></div>
+      {% else %}<p class="redup">Hari libur: tidak ada sesi.</p>{% endfor %}
+    </div>
+    <div class="kartu"><h2>Top 5 minggu ini <a class="kecil" href="/peringkat">lihat semua</a></h2>
+      <table>{% for nick, poin in top5 %}<tr><td>{{ loop.index }}. {{ nick }}</td><td class="num">{{ poin }}</td></tr>
+      {% else %}<tr><td class="redup">Belum ada skor minggu ini.</td></tr>{% endfor %}</table>
+    </div>
+    <div class="kartu"><h2>Stok soal per topik</h2>
+      <p class="kecil">Peluang terpilih sebanding jumlah soal · total {{ total_aktif }} soal aktif ≈ {{ (total_aktif / 250) | round(1) }} minggu</p>
+      {% for s in stok %}<div style="margin-bottom:8px">
+        <div class="spasi" style="justify-content:space-between"><span>{{ s.topik.name }}{% if not s.topik.is_active %} <span class="lencana">nonaktif</span>{% endif %}</span>
+        <span class="kecil">{{ s.sisa }} sisa dari {{ s.total }} · {{ (s.peluang * 100) | round | int }}%</span></div>
+        <div class="bar"><i style="width:{{ (100 * s.sisa / s.total) if s.total else 0 }}%"></i></div></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

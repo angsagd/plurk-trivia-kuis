@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Posting hari libur{% endblock %}
+{% block isi %}
+<div class="kepala"><div><h1>Posting hari libur</h1><p class="sub">Hari tanpa sesi kuis · posting informasi terjadwal</p></div></div>
+<div class="grid g3">
+<div>
+  {% for d, label, isi, juara in grup %}
+  <div class="kartu"><h2>{{ label }}</h2>
+    {% if juara is not none %}<div style="margin-bottom:8px"><strong>{{ jam_juara }} WIB · Juara mingguan</strong> <span class="lencana biru">otomatis dari template</span>
+      <div class="kecil">{{ juara }}</div></div>{% endif %}
+    {% for sp in isi %}<div style="border-top:1px solid var(--garis);padding:8px 0">
+      <div class="spasi" style="justify-content:space-between"><strong>{{ sp.run_at.strftime('%H.%M') }} WIB · {{ sp.qualifier }}</strong>
+        <span class="spasi"><span class="lencana">Terjadwal</span> <a href="/libur?ubah={{ sp.id }}">Ubah</a>
+        <form method="post" action="/libur/{{ sp.id }}/batal" class="inline">{{ csrf_field() }}<button class="bahaya-btn" data-yakin="Batalkan posting ini?">Batal</button></form></span></div>
+      <div style="white-space:pre-wrap">{{ sp.content }}</div>{% if not sp.allow_comments %}<div class="kecil">balasan dimatikan</div>{% endif %}</div>
+    {% else %}{% if juara is none %}<p class="redup">Belum ada posting. Hari libur tanpa posting akan sepi, tambahkan minimal satu.</p>{% endif %}{% endfor %}
+  </div>{% endfor %}
+  <div class="kartu"><h2>Sudah lewat</h2>
+    <table>{% for sp, status in lewat %}<tr><td>{{ sp.run_at.strftime('%d/%m %H.%M') }}</td><td>{{ sp.content[:80] }}</td><td><span class="lencana {{ 'hijau' if status == 'terkirim' else ('merah' if status == 'gagal' else '') }}">{{ status }}</span></td></tr>
+    {% else %}<tr><td class="redup">Belum ada.</td></tr>{% endfor %}</table>
+  </div>
+</div>
+<div class="kartu"><h2>{{ 'Ubah posting' if dipilih else 'Buat posting' }}</h2>
+  <form method="post" action="/libur">{{ csrf_field() }}<input type="hidden" name="post_id" value="{{ dipilih.id if dipilih else 0 }}">
+    <label>Hari libur</label><select name="tanggal">{% for v, l in pilihan_hari %}<option value="{{ v }}" {{ 'selected' if dipilih and dipilih.run_at.date().isoformat() == v }}>{{ l }}</option>{% endfor %}</select>
+    <label>Jam (WIB)</label><input type="time" name="jam" value="{{ dipilih.run_at.strftime('%H:%M') if dipilih else '12:00' }}">
+    <label>Qualifier</label><select name="qualifier">{% for q in qualifier %}<option value="{{ q }}" {{ 'selected' if dipilih and dipilih.qualifier == q }}>{{ q }}</option>{% endfor %}</select>
+    <label>Isi posting</label><textarea name="isi" data-hitung="hitung-libur" data-batas="{{ batas }}" required>{{ dipilih.content if dipilih else '' }}</textarea>
+    <div class="kecil" id="hitung-libur">{{ (dipilih.content | length) if dipilih else 0 }} / {{ batas }} karakter</div>
+    <label><input type="checkbox" name="balasan" value="1" {{ 'checked' if not dipilih or dipilih.allow_comments }}> Izinkan balasan</label>
+    <div class="spasi" style="margin-top:8px"><button class="utamakan">Simpan jadwal</button>
+      <button formaction="/libur/uji">Kirim uji (privat)</button>{% if dipilih %}<a href="/libur">Batal ubah</a>{% endif %}</div>
+  </form>
+  <p class="kecil">Posting dikirim oleh proses bot yang sama, jadi ikut berhenti bila bot dihentikan. Juara mingguan otomatis tiap Selasa {{ jam_juara }} WIB memakai template "Juara mingguan".</p>
+</div>
+</div>
+{% endblock %}

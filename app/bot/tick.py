@@ -10,6 +10,7 @@ from datetime import datetime
 from sqlalchemy import Engine
 
 from app.bot import engine as mesin
+from app.bot import libur
 from app.bot.outbox import Pengirim
 from app.bot.pengaturan import muat_pengaturan
 from app.clock import Clock, FakeClock, SystemClock
@@ -53,8 +54,14 @@ def jalankan_tick(
         )
         # 2. lanjutkan rangkaian posting yang tertunda
         pengirim.kirim(db)
-        # 3. berhenti -> selesai
         db.refresh(st)
+        if st.status == "hentikan":
+            # "Hentikan sekarang" dari admin/CLI: semua thread die (langkah 11), lalu berhenti.
+            k = mesin.Konteks(db, plurk, pengirim, p, now, plurk.whoami().id, rng or random.Random())
+            mesin.hentikan_sekarang(k)
+            pengirim.kirim(db)
+            return
+        # 3. berhenti -> selesai
         if st.status == "berhenti":
             return
         # 4. terima pertemanan tiap 10 tick
@@ -65,6 +72,9 @@ def jalankan_tick(
                 log.exception("accept_friends gagal")
 
         k = mesin.Konteks(db, plurk, pengirim, p, now, plurk.whoami().id, rng or random.Random())
+        # 6. hari libur: posting terjadwal + juara mingguan (Selasa)
+        if not p.jadwal.hari_aktif_pada(now.date()):
+            libur.proses(k)
         # 7. majukan setiap thread yang belum die (juga di hari libur, agar thread yang melewati
         #    tengah malam tetap selesai). Thread lain tetap diproses walau satu thread error.
         for sesi in mesin.thread_hidup(db):

@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block judul %}Riwayat sesi{% endblock %}
+{% block isi %}
+<div class="kepala"><div><h1>Riwayat sesi</h1><p class="sub">Arsip sesi: soal, pemenang, semua balasan + status</p></div></div>
+<div class="kartu"><table>
+  <tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th class="num">Soal</th><th class="num">Terjawab</th><th class="num">Balasan</th><th></th></tr>
+  {% for s in sesi %}<tr><td>{{ s.play_date.strftime('%d/%m/%Y') }}</td><td>{{ s.slot }}{% if s.test_mode %} <span class="lencana kuning">uji</span>{% endif %}</td>
+    <td><span class="lencana {{ 'hijau' if s.status == 'active' else ('kuning' if s.status == 'hold' else '') }}">{{ s.status }}</span></td>
+    <td class="num">{{ s.question_count }}</td><td class="num">{{ s.questions | selectattr('winner_player_id') | list | length }}</td>
+    <td class="num">{{ balasan.get(s.id, 0) }}</td><td><a href="/riwayat/{{ s.id }}">Detail</a></td></tr>
+  {% else %}<tr><td colspan="7" class="redup">Belum ada sesi.</td></tr>{% endfor %}
+</table>
+<div class="spasi" style="margin-top:10px">{% if hal > 1 %}<a class="tombol" href="/riwayat?hal={{ hal - 1 }}">← Lebih baru</a>{% endif %}{% if ada_berikut %}<a class="tombol" href="/riwayat?hal={{ hal + 1 }}">Lebih lama →</a>{% endif %}</div>
+</div>
+{% endblock %}

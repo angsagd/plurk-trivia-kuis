@@ -18,6 +18,9 @@ extend-exclude = ["docs", "private"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "DTZ"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Form", "fastapi.Query", "fastapi.File"]
+
 [tool.ruff.lint.isort]
 known-third-party = ["alembic"]
 

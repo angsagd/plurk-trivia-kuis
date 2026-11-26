@@ -1,0 +1,46 @@
+:root{--bg:#F5F6F8;--kartu:#fff;--garis:#E3E6EB;--teks:#15181D;--redup:#5B6472;--biru:#1D4ED8;--biru-tua:#1E3A8A;
+--hijau:#15803D;--hijau-bg:#E8F5EC;--merah:#B91C1C;--merah-bg:#FDECEC;--kuning:#92400E;--kuning-bg:#FEF3C7;--abu-bg:#EEF0F3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--teks);font-size:14px;line-height:1.45}
+a{color:var(--biru)}a:hover{color:var(--biru-tua)}
+.tata{display:flex;min-height:100vh}
+.samping{width:230px;flex:none;background:#fff;border-right:1px solid var(--garis);padding:20px 14px;position:sticky;top:0;height:100vh}
+.merek{font-weight:600;font-size:15px;margin:0 8px 18px}.merek small{display:block;color:var(--redup);font-weight:400;font-size:12px}
+.samping nav a{display:block;padding:8px 10px;border-radius:8px;color:var(--teks);text-decoration:none;margin-bottom:2px}
+.samping nav a:hover{background:var(--abu-bg)}.samping nav a.aktif{background:#E8EEFC;color:var(--biru-tua);font-weight:600}
+.samping form{margin-top:18px}
+.utama{flex:1;min-width:0;padding:22px 28px 60px}
+.kepala{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 12px}h3{font-size:14px;margin:14px 0 8px}
+.sub{color:var(--redup);margin:0}
+.lencana{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--abu-bg);color:var(--redup)}
+.lencana.hijau{background:var(--hijau-bg);color:var(--hijau)}.lencana.merah{background:var(--merah-bg);color:var(--merah)}
+.lencana.kuning{background:var(--kuning-bg);color:var(--kuning)}.lencana.biru{background:#E8EEFC;color:var(--biru-tua)}
+.kartu{background:var(--kartu);border:1px solid var(--garis);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:2fr 1fr}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1100px){.g2,.g3,.g4{grid-template-columns:1fr}.samping{position:static;height:auto;width:200px}}
+.angka{font-size:26px;font-weight:600}.kecil{font-size:12px;color:var(--redup)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--garis);vertical-align:top}
+th{font-size:12px;color:var(--redup);font-weight:600}td.num,th.num{text-align:right}
+.pesan{padding:10px 14px;border-radius:10px;margin-bottom:14px}.pesan.ok{background:var(--hijau-bg);color:var(--hijau)}
+.pesan.err{background:var(--merah-bg);color:var(--merah)}.pesan.info{background:#E8EEFC;color:var(--biru-tua)}
+.pesan.bahaya{background:var(--merah-bg);color:var(--merah)}
+form.baris{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+label{display:block;font-size:12px;color:var(--redup);margin-bottom:3px}
+input[type=text],input[type=number],input[type=password],input[type=date],input[type=time],select,textarea{
+font:inherit;padding:7px 9px;border:1px solid #CBD1DA;border-radius:8px;background:#fff;color:var(--teks)}
+textarea{width:100%;min-height:90px;resize:vertical}
+.tombol,button{font:inherit;padding:7px 13px;border-radius:8px;border:1px solid #CBD1DA;background:#fff;cursor:pointer;color:var(--teks);text-decoration:none;display:inline-block}
+.tombol:hover,button:hover{background:var(--abu-bg)}
+.utamakan{background:var(--biru);border-color:var(--biru);color:#fff}.utamakan:hover{background:var(--biru-tua)}
+.bahaya-btn{color:var(--merah);border-color:#F1B5B5}
+.inline{display:inline}
+.fase{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.fase span{padding:4px 9px;border-radius:8px;background:var(--abu-bg);font-size:12px}
+.fase span.kini{background:#E8EEFC;color:var(--biru-tua);font-weight:600}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.bar{height:6px;background:var(--abu-bg);border-radius:4px;overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:var(--biru)}
+.redup{color:var(--redup)}.kanan{text-align:right}.spasi{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.login{max-width:360px;margin:12vh auto}.login input{width:100%;margin-bottom:10px}
+details summary{cursor:pointer}
+pre.pratinjau{white-space:pre-wrap;background:var(--abu-bg);padding:10px;border-radius:8px;margin:6px 0;font-family:inherit}

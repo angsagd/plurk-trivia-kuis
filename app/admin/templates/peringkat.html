@@ -1,0 +1,57 @@
+{% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Peringkat{% endblock %}
+{% block isi %}
+<div class="kepala">
+  <div><h1>Peringkat</h1><p class="sub">Skor pemain per periode, dengan detail dan koreksi</p></div>
+  <a class="tombol" href="/peringkat/csv?{{ query }}">Ekspor CSV</a>
+</div>
+<div class="kartu">
+  <form method="get" action="/peringkat" class="baris">
+    <div><label>Periode</label><select name="periode">{% for k, v in daftar_periode.items() %}<option value="{{ k }}" {{ 'selected' if k == periode }}>{{ v }}</option>{% endfor %}</select></div>
+    <div><label>Dari</label><input type="date" name="dari" value="{{ dari }}"></div>
+    <div><label>Sampai</label><input type="date" name="sampai" value="{{ sampai }}"></div>
+    <div><label>Topik</label><select name="topik"><option value="0">Semua topik</option>{% for t in topik_list %}<option value="{{ t.id }}" {{ 'selected' if t.id == topik }}>{{ t.name }}</option>{% endfor %}</select></div>
+    <div><label>Cari pemain</label><input type="text" name="cari" value="{{ cari }}"></div>
+    <button class="utamakan">Tampilkan</button>
+  </form>
+  <p class="kecil">Dari/sampai hanya dipakai untuk periode "Rentang tanggal".</p>
+</div>
+<div class="grid {{ 'g3' if dipilih else '' }}">
+<div class="kartu">
+  <h2>{{ daftar_periode.get(periode, '') }} <span class="kecil">{{ judul }}</span></h2>
+  <table>
+    <tr><th>#</th><th>Pemain</th><th class="num">Skor</th><th class="num">Benar</th><th class="num">Sesi ikut</th><th>Rata-rata terjawab</th><th></th></tr>
+    {% for r in baris %}<tr>
+      <td>{{ loop.index }}</td><td>{{ r.nick }} {% if r.diblokir %}<span class="lencana merah">diblokir</span>{% endif %}</td>
+      <td class="num"><strong>{{ r.skor }}</strong></td><td class="num">{{ r.benar }}</td><td class="num">{{ r.sesi_ikut }}</td><td>{{ r.rata_fase }}</td>
+      <td><a href="/peringkat?{{ query }}&pemain={{ r.player_id }}">Detail</a></td></tr>
+    {% else %}<tr><td colspan="7" class="redup">Belum ada skor pada periode ini.</td></tr>{% endfor %}
+  </table>
+</div>
+{% if dipilih %}
+<div class="kartu">
+  <h2>{{ dipilih.nick }} {% if dipilih.is_blocked %}<span class="lencana merah">diblokir</span>{% endif %}</h2>
+  <p class="kecil">ID Plurk {{ dipilih.plurk_user_id }} · <a href="https://www.plurk.com/{{ dipilih.nick }}" target="_blank" rel="noopener">profil Plurk</a></p>
+  <div class="grid g2">
+    <div><div class="kecil">Semua waktu</div><div class="angka">{{ detail.total }}</div></div>
+    <div><div class="kecil">Juara mingguan</div><div class="angka">{{ detail.juara }}×</div></div>
+  </div>
+  <p class="kecil">Topik terkuat: {{ detail.topik_terkuat }}</p>
+  <h3>Jawaban benar terakhir</h3>
+  <table>{% for jawaban, topik, fase, poin, tgl in detail.menang %}<tr><td>{{ tgl.strftime('%d/%m') }}</td><td>{{ jawaban }}</td><td>{{ ['Soal','Clue 1','Clue 2','Clue 3'][fase] }}</td><td class="num">{{ poin }}</td></tr>
+  {% else %}<tr><td class="redup">Belum ada.</td></tr>{% endfor %}</table>
+  <h3>Koreksi skor (alasan wajib)</h3>
+  <form method="post" action="/peringkat/pemain/{{ dipilih.id }}/koreksi">{{ csrf_field() }}
+    <div class="baris" style="display:flex;gap:8px">
+      <div><label>Poin (+/-)</label><input type="number" name="poin" required style="width:90px"></div>
+      <div><label>Minggu (tanggal mana pun)</label><input type="date" name="minggu" value="{{ minggu_ini.isoformat() }}"></div>
+    </div>
+    <label>Alasan</label><input type="text" name="alasan" required style="width:100%;margin-bottom:8px">
+    <button class="utamakan">Simpan koreksi</button>
+  </form>
+  {% if detail.koreksi %}<table style="margin-top:8px">{% for k in detail.koreksi %}<tr><td>{{ k.week_start.strftime('%d/%m') }}</td><td class="num">{{ '%+d' % k.points }}</td><td>{{ k.reason }}</td></tr>{% endfor %}</table>{% endif %}
+  <form method="post" action="/peringkat/pemain/{{ dipilih.id }}/blokir" style="margin-top:12px">{{ csrf_field() }}
+    <button class="{{ '' if dipilih.is_blocked else 'bahaya-btn' }}">{{ 'Buka blokir' if dipilih.is_blocked else 'Blokir pemain' }}</button></form>
+</div>
+{% endif %}
+</div>
+{% endblock %}

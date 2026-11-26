@@ -1,0 +1,75 @@
+{% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Bank soal{% endblock %}
+{% block isi %}
+<div class="kepala"><div><h1>Bank soal</h1>
+  <p class="sub">{{ stok | length }} topik · {{ total }} soal aktif · peluang topik terpilih sebanding jumlah soalnya</p></div></div>
+
+<div class="kartu">
+  <h2>Unggah topik</h2>
+  <form method="post" action="/soal/unggah" enctype="multipart/form-data" class="baris">{{ csrf_field() }}
+    <input type="file" name="berkas" accept=".txt,text/plain" required>
+    <button class="utamakan">Validasi</button>
+  </form>
+  <p class="kecil">Nama file: <span class="mono">trivia_NN_nama_topik.txt</span> · isi <span class="mono">soal|clue|jawaban</span> · UTF-8 · maks 2 MB. Nomor &amp; nama topik dibaca dari nama file; jika nama topik sudah ada, isinya diperbarui.</p>
+  {% if err_unggah %}<div class="pesan err">{{ nama_file }}: {{ err_unggah }}</div>{% endif %}
+  {% if lap %}
+  <div style="border-top:1px solid var(--garis);padding-top:12px;margin-top:8px">
+    <h3>{{ nama_file }} → [{{ lap.nomor }}] {{ lap.nama }} <span class="lencana {{ 'biru' if lap.topik_baru else 'kuning' }}">{{ 'topik baru' if lap.topik_baru else 'memperbarui topik yang ada' }}</span></h3>
+    {% if lap.mirip_dengan %}
+    <div class="pesan bahaya">Lebih dari separuh soal di file ini sudah ada di topik <strong>{{ lap.mirip_dengan }}</strong>. Mungkin topik itu yang diganti nama.
+      <form method="post" action="/soal/topik/{{ mirip_id }}/ganti-nama" class="inline">{{ csrf_field() }}
+        <input type="hidden" name="nama_file" value="{{ nama_file }}"><input type="hidden" name="isi_b64" value="{{ isi_b64 }}">
+        <button>Ganti nama {{ lap.mirip_dengan }} → {{ lap.nama }} lalu perbarui</button></form>
+      <span class="kecil">atau tetap simpan sebagai topik baru di bawah.</span></div>
+    {% else %}<p class="kecil">Cek kemiripan: tidak ada topik lain dengan mayoritas soal yang sama.</p>{% endif %}
+    <div class="pesan {{ 'ok' if not lap.validasi.baris_error else 'err' }}">
+      {{ lap.validasi.total }} soal dibaca · {{ lap.validasi.valid | length }} lolos · {{ lap.validasi.baris_error }} baris error · {{ lap.validasi.jumlah_peringatan }} peringatan</div>
+    <p class="kecil">Jika disimpan: {{ lap.soal_baru }} soal baru · {{ lap.diperbarui }} diperbarui · {{ lap.tetap }} tetap · {{ lap.dinonaktifkan }} dinonaktifkan (tidak ada lagi di file){% if lap.duplikat_di_file %} · {{ lap.duplikat_di_file }} duplikat di file dilewati{% endif %}.
+      Jawaban {{ rentang_huruf[0] }}–{{ rentang_huruf[1] }} huruf · soal terpanjang {{ panjang_soal }} karakter{% if pasangan_bocor %} · {{ pasangan_bocor }} pasangan soal saling menyebut jawaban (bot tidak menempatkannya di sesi yang sama){% endif %}.</p>
+    {% if lap.validasi.masalah %}<details><summary>Lihat {{ lap.validasi.masalah | length }} masalah</summary><table>
+      {% for m in lap.validasi.masalah[:200] %}<tr><td>{{ m.baris }}</td><td><span class="lencana {{ 'merah' if m.tingkat == 'ERROR' else 'kuning' }}">{{ m.tingkat }}</span></td><td>{{ m.pesan }}</td><td class="kecil">{{ m.isi[:90] }}</td></tr>{% endfor %}
+    </table></details>{% endif %}
+    <div class="spasi" style="margin-top:10px">
+      <form method="post" action="/soal/simpan" class="inline">{{ csrf_field() }}<input type="hidden" name="nama_file" value="{{ nama_file }}"><input type="hidden" name="isi_b64" value="{{ isi_b64 }}">
+        <button class="utamakan" {{ 'disabled' if not lap.validasi.valid }}>Simpan ke bank soal</button></form>
+      <form method="post" action="/soal/laporan" class="inline">{{ csrf_field() }}<input type="hidden" name="nama_file" value="{{ nama_file }}"><input type="hidden" name="isi_b64" value="{{ isi_b64 }}">
+        <button>Unduh laporan</button></form>
+    </div>
+    <p class="kecil">Soal dikenali dari teks soalnya: soal yang sudah pernah keluar tetap tercatat meski urutan baris berubah.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="kartu">
+  <h2>Topik</h2>
+  <table><tr><th>#</th><th>Topik</th><th class="num">Total</th><th class="num">Terpakai</th><th class="num">Sisa</th><th class="num">Peluang</th><th>Status</th><th></th></tr>
+  {% for s in stok %}{% set t = s.topik %}<tr>
+    <td class="mono">{{ t.number }}</td><td>{{ t.name }}<div class="kecil">{{ t.filename }} · siklus {{ t.cycle }}</div></td>
+    <td class="num">{{ s.total }}</td><td class="num">{{ s.total - s.sisa }}</td><td class="num">{{ s.sisa }}</td><td class="num">{{ (s.peluang * 100) | round | int }}%</td>
+    <td><span class="lencana {{ 'hijau' if t.is_active else '' }}">{{ 'Aktif' if t.is_active else 'Nonaktif' }}</span></td>
+    <td class="spasi"><a href="/soal?topik={{ t.id }}">Lihat soal</a> · <a href="/soal?ganti={{ t.id }}">Ganti nama</a>
+      <form method="post" action="/soal/topik/{{ t.id }}/aktif" class="inline">{{ csrf_field() }}<button>{{ 'Nonaktifkan' if t.is_active else 'Aktifkan' }}</button></form></td></tr>
+    {% if ganti == t.id | string %}<tr><td></td><td colspan="7">
+      <form method="post" action="/soal/topik/{{ t.id }}/ganti-nama" class="baris">{{ csrf_field() }}
+        <div><label>Nama file baru (sekarang {{ t.filename }})</label><input type="text" name="nama_file" value="{{ t.filename }}" size="40" required></div>
+        <button class="utamakan">Simpan nama baru</button> <a href="/soal">Batal</a></form>
+      <p class="kecil">Riwayat soal terpakai, siklus, skor, dan statistik tetap. Unggahan berikutnya harus memakai nama file baru. Tercatat di log admin.</p></td></tr>{% endif %}
+  {% else %}<tr><td colspan="8" class="redup">Belum ada topik.</td></tr>{% endfor %}</table>
+</div>
+
+<div class="kartu">
+  <h2>Cari soal</h2>
+  <form method="get" action="/soal" class="baris">
+    <div><label>Soal, clue, atau jawaban</label><input type="text" name="cari" value="{{ cari }}" size="40"></div>
+    <div><label>Topik</label><select name="topik"><option value="">Semua topik</option>{% for s in stok %}<option value="{{ s.topik.id }}" {{ 'selected' if topik == s.topik.id | string }}>{{ s.topik.name }}</option>{% endfor %}</select></div>
+    <button>Cari</button>
+  </form>
+  {% if soal %}<table style="margin-top:10px"><tr><th>Soal</th><th>Jawaban</th><th>Riwayat</th><th></th></tr>
+  {% for q in soal %}{% set rw = riwayat[q.id] %}<tr>
+    <td>{{ q.soal }}<div class="kecil">Clue: {{ q.clue }}</div></td><td class="mono">{{ q.jawaban }}</td>
+    <td class="kecil">Keluar {{ q.times_used }}×{% for x in rw if x.winner_phase is not none %}{% if loop.first %} · terjawab di {{ ['Soal','Clue 1','Clue 2','Clue 3'][x.winner_phase] }}{% endif %}{% endfor %}</td>
+    <td><form method="post" action="/soal/{{ q.id }}/aktif">{{ csrf_field() }}<input type="hidden" name="kembali_ke" value="/soal?cari={{ cari | urlencode }}&topik={{ topik }}">
+      <button class="{{ 'bahaya-btn' if q.is_active }}">{{ 'Nonaktifkan' if q.is_active else 'Aktifkan' }}</button></form></td></tr>{% endfor %}
+  </table>{% if soal | length == 100 %}<p class="kecil">Menampilkan 100 hasil pertama.</p>{% endif %}
+  {% elif cari or topik %}<p class="redup">Tidak ada soal yang cocok.</p>{% endif %}
+</div>
+{% endblock %}

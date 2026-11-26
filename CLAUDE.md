@@ -6,7 +6,7 @@ Bahasa proyek: Indonesia. Satu admin (pemilik proyek).
 - Blueprint implementasi (rincian lengkap, diagram, skema, tes): https://claude.ai/artifact/LbrY41ksyrrKeoNcadVFXm
 - Mockup admin: https://claude.ai/artifact/8v4NLgEWVzQ3LXmdipdEN5 (sumber di `docs/mockup/`, hanya referensi tata letak)
 
-Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3 selesai (26 Nov 2026)**; berikutnya tahap 4. Ikuti urutan di bagian "Tahapan".
+Status: desain selesai (25 Nov 2026; mekanik thread hold/active/die diperbarui 26 Nov 2026). **Tahap 0–3 dan 5 selesai (27 Nov 2026)**; RealPlurk sudah dibuat, tahap 4 menunggu akun uji. Ikuti urutan di bagian "Tahapan".
 
 ---
 
@@ -95,11 +95,11 @@ Aturan:
 
 ```
 app/
-  config.py  db.py  models.py  clock.py  cli.py  bank_soal.py
-  core/      matching.py judging.py scoring.py clues.py validator.py selection.py schedule.py
+  config.py  db.py  models.py  clock.py  cli.py  bank_soal.py  perintah.py
+  core/      matching.py judging.py scoring.py clues.py validator.py selection.py schedule.py commands.py
   plurk/     client.py real.py fake.py
-  bot/       loop.py tick.py engine.py outbox.py messages.py pengaturan.py peringkat.py simulator.py
-  admin/     main.py auth.py routes/ templates/ static/
+  bot/       loop.py tick.py engine.py outbox.py messages.py pengaturan.py peringkat.py simulator.py libur.py
+  admin/     main.py auth.py deps.py query.py routes/ templates/ static/ (htmx 2.0.4 disimpan lokal + SRI)
 alembic/  contoh/  tests/  scripts/backup.sh  tools/validasi_soal.py
 private/   ← TIDAK di-commit: bank_soal/ (soal asli), laporan/
 .gitignore  .dockerignore  .env.example
@@ -358,6 +358,18 @@ Keputusan tahap 2 (berbeda/tambahan dari blueprint):
 
 Keamanan: argon2 + opsional TOTP, cookie `HttpOnly`/`Secure`/`SameSite=Strict`, CSRF, batas 5 login gagal per 15 menit, akun dibuat lewat CLI `buat-admin`, semua aksi tercatat di `admin_audit`.
 
+### Keputusan implementasi tahap 5 (perlu dikonfirmasi pemilik proyek)
+
+- **Admin tidak pernah memanggil Plurk.** Aksi yang perlu Plurk ditulis ke database, lalu dijalankan bot di tick berikutnya (≤ 1 menit): "Hentikan sekarang" = status `hentikan` (bot menutup semua thread lalu `berhenti`); "Kirim uji (privat)" = baris outbox `kind=plurk` dengan `limited_to` = ID akun admin (wajib diisi di Mode uji).
+- **Lewati soal** mengganti soal **berikutnya** yang belum tampil (soal yang sedang tampil tidak dipotong); tombolnya di kartu thread di Dashboard.
+- Sesi login: cookie bertanda tangan HMAC (`APP_SECRET_KEY`, min. 32 karakter) berlaku 12 jam; CSRF lewat field `csrf` atau header `X-CSRF-Token` (HTMX). `COOKIE_SECURE=false` hanya untuk dev tanpa HTTPS. TOTP: `buat-admin --totp` mencetak URI untuk aplikasi authenticator.
+- Header: CSP `default-src 'self'` (tanpa CDN/Google Fonts), `X-Frame-Options: DENY`, `Cache-Control: no-store`.
+- Jam halaman admin: jam bot (`bot_state.last_tick_at`) bila dev memakai jam palsu; selain itu jam nyata WIB.
+- Jadwal diatur dengan mulai/selesai/jarak sesi + centang hari aktif (seperti mockup). Kolom mockup "jarak antar fase" dan "batas jawaban per pemain per menit" tidak dibuat: fase = 1 tick (1 menit) dan batasnya 3 balasan per fase (CLAUDE.md).
+- Posting hari libur hanya boleh di hari yang bukan hari aktif; dikirim bot pada langkah 6. **Juara mingguan otomatis tiap Selasa 12.00 WIB** (template `juara_mingguan`, Top 10 minggu lalu; dilewati bila belum ada skor).
+- Perintah bawaan & statistik (`app/perintah.py`) dibuat otomatis saat admin start; `?` = sinonim khusus `bantuan`. Kata kunci/sinonim: huruf kecil a-z & angka, 2-20 karakter, tidak bentrok. Respons kustom hanya boleh `{nama}` dan `{sesi_berikutnya}`.
+- Pratinjau unggah = impor dijalankan dalam transaksi lalu di-rollback; isi file dibawa ke tombol Simpan sebagai field tersembunyi (base64). Cek kemiripan menawarkan "Ganti nama topik lama → nama file ini lalu perbarui".
+
 Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terjawab, panjang jawaban vs kesulitan, sesi/jam teramai.
 
 ## Tes wajib (contoh)
@@ -427,11 +439,12 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - `CLAUDE.md` — dokumen ini
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
+- Tahap 5: admin web (`app/admin/`: 8 halaman + login, `routes/` per halaman, `templates/`, `static/`), `app/core/commands.py`, `app/perintah.py`, `app/bot/libur.py`; CLI `buat-admin --totp`
 - Tahap 3–4: `app/plurk/` (`client.py` antarmuka + error, `fake.py` FakePlurk SQLite, `real.py` RealPlurk OAuth, belum diuji ke Plurk asli), `app/bot/` (`engine.py` mesin thread, `outbox.py`, `tick.py`, `messages.py`, `pengaturan.py`, `peringkat.py`, `simulator.py`), CLI `status`/`tick`/`simulasi`/`thread`
 - Tahap 2: `app/db.py` (SQLite WAL, `WaktuWIB`, `sesi_db`), `app/models.py` (19 tabel), `alembic/` (migrasi `skema awal`), `app/bank_soal.py` (impor topik), CLI `seed` & `buat-admin`; tick menulis `bot_state`, healthcheck bot membaca `bot_state.heartbeat_at`
 - Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
 - `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
-- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_admin.py` (login, CSRF, TOTP, 8 halaman, aksi admin), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

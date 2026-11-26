@@ -1,0 +1,76 @@
+{% extends "base.html" %}{% from "_makro.html" import csrf_field with context %}{% block judul %}Kontrol & pengaturan{% endblock %}
+{% block isi %}
+<div class="kepala"><div><h1>Kontrol &amp; pengaturan</h1><p class="sub">Perubahan berlaku di tick berikutnya (maksimal 1 menit), tanpa restart bot</p></div></div>
+<div class="grid g2">
+<div>
+  <div class="kartu"><h2>Status bot</h2>
+    <p>Status sekarang: <span class="lencana">{{ bot.status }}</span></p>
+    <div class="spasi">
+      {% for aksi, label, kelas in [("jalankan","Jalankan","utamakan"),("jeda","Jeda setelah sesi ini",""),("hentikan","Hentikan sekarang","bahaya-btn")] %}
+      <form method="post" action="/kontrol/{{ aksi }}" class="inline">{{ csrf_field() }}<button class="{{ kelas }}" {% if aksi == 'hentikan' %}data-yakin="Tutup semua thread yang berjalan sekarang?"{% endif %}>{{ label }}</button></form>{% endfor %}
+    </div>
+    <p class="kecil">Jeda: thread berjalan dibiarkan selesai, tidak ada sesi baru. Hentikan sekarang: semua thread langsung ditutup (ranking + farewell), lalu bot berhenti.</p>
+    <h3>Mode uji (posting privat ke akun admin)</h3>
+    <form method="post" action="/pengaturan/mode-uji">{{ csrf_field() }}
+      <label><input type="checkbox" name="aktif" value="1" {{ 'checked' if p.mode_uji }}> Mode uji aktif</label>
+      <label>ID akun Plurk admin (angka, pisahkan koma)</label>
+      <input type="text" name="akun" value="{{ p.mode_uji_limited_to | join(', ') }}">
+      <button>Simpan</button>
+    </form>
+    <p class="kecil">Saat aktif, plurk sesi baru dan posting libur hanya terlihat akun di atas (<span class="mono">limited_to</span>).</p>
+  </div>
+
+  <div class="kartu"><h2>Karakter pengganti huruf</h2>
+    <form method="post" action="/pengaturan/clue" hx-get="/pengaturan/pratinjau-clue" hx-trigger="change" hx-target="#pratinjau-clue">{{ csrf_field() }}
+      <div class="spasi">{% for c in karakter %}<label><input type="radio" name="karakter" value="{{ c }}" {{ 'checked' if c == p.karakter_pengganti }}> <span class="mono">{{ c }}</span></label>{% endfor %}</div>
+      <div class="spasi">Pemisah kata: {% for v, l in pemisah.items() %}<label><input type="radio" name="pemisah" value="{{ v }}" {{ 'checked' if v == p.pemisah_kata }}> {{ l }}</label>{% endfor %}</div>
+      <div id="pratinjau-clue">{% include "_clue.html" %}</div>
+      <button class="utamakan">Simpan</button>
+    </form>
+    <form method="post" action="/pengaturan/uji-clue" style="margin-top:8px">{{ csrf_field() }}<button>Kirim plurk uji (privat)</button></form>
+  </div>
+
+  <div class="kartu"><h2>Jadwal</h2>
+    <form method="post" action="/pengaturan/jadwal">{{ csrf_field() }}
+      <div class="baris" style="display:flex;gap:8px">
+        <div><label>Mulai (WIB)</label><input type="time" name="mulai" value="{{ jam_mulai }}"></div>
+        <div><label>Selesai (WIB)</label><input type="time" name="selesai" value="{{ jam_selesai }}"></div>
+        <div><label>Sesi setiap</label><select name="interval">{% for m in [60, 90, 120, 180] %}<option value="{{ m }}" {{ 'selected' if m == interval }}>{{ m // 60 }} jam{{ ' 30 mnt' if m % 60 }}</option>{% endfor %}</select></div>
+      </div>
+      <div class="spasi" style="margin:8px 0">{% for i in [0,1,2,3,4,5,6] %}<label><input type="checkbox" name="hari" value="{{ i }}" {{ 'checked' if i in p.hari_aktif }}> {{ nama_hari[i][:3] }}</label>{% endfor %}</div>
+      <p class="kecil">Sekarang: {{ p.jam_sesi | join(' · ') }} WIB · reset skor mingguan Selasa 00.00 WIB</p>
+      <button class="utamakan">Simpan jadwal</button>
+    </form>
+  </div>
+</div>
+<div>
+  <div class="kartu"><h2>Aturan permainan</h2>
+    <form method="post" action="/pengaturan/aturan">{{ csrf_field() }}
+      <div class="grid g2">
+        {% for nama, label in [("maks_soal","Soal per sesi"),("umur_hold_menit","Umur thread menunggu (menit)"),("maks_karakter_balasan","Panjang balasan maksimal"),("maks_per_fase","Balasan dinilai per pemain per fase"),("maks_posting_per_tick","Posting per tick"),("batas_teks","Batas karakter Plurk")] %}
+        <div><label>{{ label }}</label><input type="number" name="{{ nama }}" value="{{ p[nama] }}"></div>{% endfor %}
+        <div><label>Jeda antar posting (detik)</label><input type="number" step="0.5" name="jeda_posting_detik" value="{{ p.jeda_posting_detik }}"></div>
+      </div>
+      <button class="utamakan" style="margin-top:8px">Simpan aturan</button>
+    </form>
+    <h3>Rumus skor</h3>
+    <form method="post" action="/pengaturan/rumus" class="baris">{{ csrf_field() }}
+      <select name="rumus">{% for r in rumus %}<option value="{{ r }}" {{ 'selected' if r == p.rumus_skor }}>{{ r }}{{ ' — ceil(huruf ÷ (1 + clue keluar))' if r == 'ceil_bagi' }}</option>{% endfor %}</select>
+      <button>Simpan</button></form>
+    <p class="kecil">Contoh SOEKARNO (8 huruf): Soal {{ contoh_skor[0] }} · Clue 1 {{ contoh_skor[1] }} · Clue 2 {{ contoh_skor[2] }} · Clue 3 {{ contoh_skor[3] }}</p>
+  </div>
+
+  <div class="kartu"><h2>Template pesan</h2>
+    <div class="spasi" style="margin-bottom:8px">{% for k, (label, _) in label_template.items() %}<a class="tombol {{ 'utamakan' if k == key }}" href="/pengaturan?template={{ k }}">{{ label }}</a>{% endfor %}</div>
+    <form method="post" action="/pengaturan/template">{{ csrf_field() }}<input type="hidden" name="key" value="{{ key }}">
+      <label>Isi template: {{ label_template[key][0] }} {% if diubah %}<span class="lencana kuning">diubah</span>{% endif %}</label>
+      <textarea name="isi" hx-get="/pengaturan/pratinjau-template" hx-trigger="keyup changed delay:300ms" hx-target="#pratinjau-template">{{ isi }}</textarea>
+      <p class="kecil">Isian: <span class="mono">{{ label_template[key][1] or '(tidak ada)' }}</span></p>
+      <div id="pratinjau-template">{% with teks=pratinjau, batas=p.batas_teks %}{% include "_pratinjau.html" %}{% endwith %}</div>
+      <div class="spasi"><button class="utamakan" name="aksi" value="simpan">Simpan template</button>
+        {% if diubah %}<button name="aksi" value="reset" data-yakin="Kembalikan ke teks bawaan?">Kembalikan bawaan</button>{% endif %}</div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}

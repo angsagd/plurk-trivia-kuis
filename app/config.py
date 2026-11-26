@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     fake_now: datetime | None = None
     tick_seconds: int = 60
 
+    cookie_secure: bool = True  # dev tanpa HTTPS: COOKIE_SECURE=false di .env.dev
+
     telegram_bot_token: SecretStr | None = None
     telegram_chat_id: str | None = None
 

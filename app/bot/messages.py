@@ -31,7 +31,37 @@ TEMPLATE_BAWAAN: dict[str, str] = {
     "ranking_hari_ini": "📊 Peringkat hari ini:\n{ranking}",
     "farewell": "Terima kasih sudah bermain! Sesi berikutnya: {sesi_berikutnya}.",
     "farewell_sudah_mulai": "Terima kasih sudah bermain! Sesi berikutnya sudah dimulai: {tautan}",
+    "juara_mingguan": "🏆 Juara minggu ini ({rentang}): {juara}!\n{top10}",
 }
+
+# Nama tampilan & isian yang tersedia per template (untuk halaman admin).
+LABEL_TEMPLATE: dict[str, tuple[str, str]] = {
+    "sesi_baru": ("Plurk sesi (01)", "{hari} {tanggal} {sesi} {jam} {maks_soal}"),
+    "top10": ("Top 10 mingguan (02)", "{top10}"),
+    "top10_kosong": ("Top 10 kosong (02, minggu baru)", ""),
+    "ajakan": ("Ajakan siap (03)", ""),
+    "siap_soal": ("Siap soal (04)", "{n}"),
+    "soal": ("Soal (05)", "{n} {soal}"),
+    "clue1": ("Clue 1", "{clue}"),
+    "clue2": ("Clue 2", "{clue}"),
+    "clue3": ("Clue 3", "{clue}"),
+    "pemenang": ("Pemenang soal", "{nama} {jawaban} {skor}"),
+    "jawaban_dibuka": ("Jawaban dibuka", "{jawaban}"),
+    "menunggu": ("Kuis menunggu peserta (10b2)", ""),
+    "ranking_hari_ini": ("Ranking hari ini (11)", "{ranking}"),
+    "farewell": ("Farewell", "{sesi_berikutnya}"),
+    "farewell_sudah_mulai": ("Farewell, sesi berikutnya sudah dimulai", "{tautan}"),
+    "juara_mingguan": ("Juara mingguan (Selasa)", "{rentang} {juara} {top10}"),
+}
+
+CONTOH_ISIAN: dict[str, object] = {
+    "hari": "Senin", "tanggal": "30 November 2026", "sesi": 2, "jam": "14.00", "maks_soal": 10,
+    "top10": "1. pemain_a — 42\n2. pemain_b — 37\n3. pemain_c — 21", "n": 4,
+    "soal": "Pulau di Indonesia yang dijuluki Pulau Dewata?", "clue": "Terkenal dengan Pura Tanah Lot",
+    "nama": "pemain_a", "jawaban": "BALI", "skor": 4, "ranking": "1. pemain_a — 12\n2. pemain_b — 8",
+    "sesi_berikutnya": "hari ini 16.00 WIB", "tautan": "https://www.plurk.com/p/abc123",
+    "rentang": "25–30 November", "juara": "pemain_a",
+}  # fmt: skip
 
 
 class _Aman(dict):

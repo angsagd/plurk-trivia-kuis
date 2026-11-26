@@ -29,6 +29,11 @@ BAWAAN: dict[str, Any] = {
     "qualifier": ":",
     "mode_uji": False,
     "mode_uji_limited_to": [],  # ID akun Plurk admin; dipakai bila mode_uji
+    # Perintah lewat mention (tahap 8)
+    "perintah_aktif": False,
+    "perintah_cooldown_menit": 60,
+    "perintah_batas_global_per_jam": 20,
+    "perintah_kedaluwarsa_menit": 60,
 }
 
 
@@ -51,10 +56,24 @@ class Pengaturan:
     qualifier: str
     mode_uji: bool
     mode_uji_limited_to: list[int]
+    perintah_aktif: bool
+    perintah_cooldown_menit: int
+    perintah_batas_global_per_jam: int
+    perintah_kedaluwarsa_menit: int
 
     @property
     def jadwal(self) -> Jadwal:
         return Jadwal.dari(self.hari_aktif, [time.fromisoformat(j) for j in self.jam_sesi])
+
+
+def simpan_pengaturan(db: Session, now, **nilai: Any) -> None:
+    """Tulis pengaturan ke tabel settings (key harus dikenal). Tidak commit."""
+    nama = {f.name for f in fields(Pengaturan)}
+    for key, v in nilai.items():
+        if key not in nama:
+            raise KeyError(key)
+        db.merge(Setting(key=key, value=v, updated_at=now))
+    db.flush()
 
 
 def muat_pengaturan(db: Session) -> Pengaturan:

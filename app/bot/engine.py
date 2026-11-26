@@ -396,3 +396,26 @@ def hentikan_sekarang(k: Konteks) -> int:
     k.db.get_one(BotState, 1).status = "berhenti"
     k.db.commit()
     return jumlah
+
+
+def lewati_soal(db: Session, sesi: GameSession, rng: random.Random) -> SessionQuestion | None:
+    """Kontrol admin: ganti soal BERIKUTNYA yang belum tampil di thread ini dengan aturan pemilihan yang sama.
+    (Soal yang sedang tampil tidak dipotong.) Kembalikan baris yang diganti, atau None bila tidak ada."""
+    sq = _soal_ke(sesi, sesi.question_count + 1)
+    if sq is None or sq.step != "belum":
+        return None
+    lama = sq.question_id
+    stok = []
+    for t in db.scalars(select(Topic).where(Topic.is_active)):
+        aktif = db.scalars(select(Question).where(Question.topic_id == t.id, Question.is_active)).all()
+        stok.append(StokTopik(t.id, t.cycle, [_kandidat(q) for q in aktif]))
+    hasil = pilih_soal(stok, rng, n=1, sudah_ada=soal_berjalan(db))
+    if not hasil.soal:
+        return None
+    for tid, cycle in hasil.cycle_baru.items():
+        db.get_one(Topic, tid).cycle = cycle
+    sq.question_id = hasil.soal[0].id
+    db.flush()
+    db.expire(sq, ["question"])
+    log.info("sesi %d soal #%d dilewati: %d -> %d", sesi.id, sq.number, lama, sq.question_id)
+    return sq
