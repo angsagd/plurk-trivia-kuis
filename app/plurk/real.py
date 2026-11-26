@@ -1,10 +1,10 @@
 """RealPlurk: Plurk API 2.0 lewat OAuth 1.0a (HMAC-SHA1). Dokumentasi: https://www.plurk.com/API
 
-Hal yang BELUM terbukti dan harus diuji di tahap 4 (akun uji + mode uji privat):
-- urutan ID balasan naik sesuai urutan masuk (get_responses mengurutkan menurut ID);
-- arti `from_response` (offset atau ID); karena itu semua balasan diambil lalu disaring ID > setelah_id;
-- format error untuk token tidak valid (dokumentasi hanya menyebut HTTP 400 + error_text);
-- qualifier ':' (freestyle) diterima API; batas panjang teks (perkiraan 360).
+Terbukti di tahap 4 (27 Nov 2026, `uji-plurk`, laporan di private/laporan/):
+- ID balasan naik sesuai urutan masuk; `from_response` = OFFSET (bukan ID); `count` didukung;
+- API bisa mengembalikan balasan yang sama dua kali -> dibuang berdasarkan ID;
+- batas teks tepat 360 karakter (361 -> HTTP 400 "Content too long"); qualifier ':' dan limited_to diterima.
+Belum terbukti: format error untuk token tidak valid (dokumentasi hanya menyebut HTTP 400 + error_text).
 """
 
 import json
@@ -109,10 +109,13 @@ class RealPlurk:
         isi = self._panggil("/APP/Responses/get", plurk_id=plurk_id, from_response=0)
         pengguna = isi.get("friends") or {}
         hasil = []
+        terlihat: set[int] = set()
         for r in isi.get("responses") or []:
             rid = int(r["id"])
-            if rid <= setelah_id:
+            # Terbukti di tahap 4: API bisa mengembalikan balasan yang sama dua kali (ID sama).
+            if rid <= setelah_id or rid in terlihat:
                 continue
+            terlihat.add(rid)
             uid = int(r["user_id"])
             if uid == ANONIM_USER_ID:
                 nick = str(r.get("handle") or "anonim")

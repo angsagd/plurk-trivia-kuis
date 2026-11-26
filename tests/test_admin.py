@@ -313,13 +313,14 @@ def test_simpan_jadwal_aturan_rumus_clue_mode_uji(klien, h):
     }
     assert "disimpan" in pesan(post(klien, "/pengaturan/aturan", token, **aturan))
     assert "harus" in pesan(post(klien, "/pengaturan/aturan", token, **{**aturan, "maks_soal": 11}))
-    post(klien, "/pengaturan/clue", token, karakter="_", pemisah=" / ")
+    assert "tidak dikenal" in pesan(post(klien, "/pengaturan/clue", token, karakter="_", pemisah=" "))
+    post(klien, "/pengaturan/clue", token, karakter="＿", pemisah=" / ")
     assert "Isi ID akun" in pesan(post(klien, "/pengaturan/mode-uji", token, aktif="1", akun=""))
     post(klien, "/pengaturan/mode-uji", token, aktif="1", akun="123, 456")
     with sesi_db(h.engine) as db:
         p = muat_pengaturan(db)
     assert p.jam_sesi == ["10:00", "13:00"] and p.hari_aktif == [0, 2]
-    assert (p.maks_soal, p.maks_posting_per_tick, p.karakter_pengganti, p.pemisah_kata) == (5, 3, "_", " / ")
+    assert (p.maks_soal, p.maks_posting_per_tick, p.karakter_pengganti, p.pemisah_kata) == (5, 3, "＿", " / ")
     assert p.mode_uji and p.mode_uji_limited_to == [123, 456]
 
 

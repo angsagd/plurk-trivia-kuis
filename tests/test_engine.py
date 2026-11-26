@@ -268,11 +268,21 @@ def test_siklus_tanpa_balasan_jawaban_dibuka_lalu_hold(h):
 
 
 def test_clue_2_dan_3_memakai_karakter_pengganti(h):
-    h.atur(karakter_pengganti="_")
+    h.atur(karakter_pengganti="＿")
     buka_dan_aktifkan(h)
     h.tick(4)  # soal, clue1, clue2, clue3
     jawaban = h.jawaban_sekarang()
-    assert h.posting_bot()[-2:] == ["💡 Clue 2: 7 huruf: _______", f"💡 Clue 3: J_____{jawaban[-1]}"]
+    assert h.posting_bot()[-2:] == [
+        "💡 Clue 2: 7 huruf: ＿＿＿＿＿＿＿",
+        f"💡 Clue 3: J＿＿＿＿＿{jawaban[-1]}",
+    ]
+
+
+def test_karakter_lama_yang_tidak_didukung_kembali_ke_bawaan(h):
+    h.atur(karakter_pengganti="-", pemisah_kata="|")
+    with sesi_db(h.engine) as db:
+        p = muat_pengaturan(db)
+    assert (p.karakter_pengganti, p.pemisah_kata) == ("=", " ")
 
 
 def main_sampai_selesai(

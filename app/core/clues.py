@@ -1,7 +1,9 @@
 """Clue 2 (jumlah huruf + pola per kata) dan clue 3 (huruf awal & akhir seluruh jawaban).
 Clue 1 adalah teks clue dari bank soal."""
 
-KARAKTER_PENGGANTI = ("-", "=", ".", "_", "＿")
+# Diuji di Plurk asli (27 Nov 2026): "--" menjadi teks coret dan "__" menjadi garis bawah di tampilan Plurk,
+# sehingga "-" dan "_" tidak dipakai. "=", "." dan "＿" (garis bawah lebar) tampil utuh.
+KARAKTER_PENGGANTI = ("=", ".", "＿")
 PEMISAH_KATA = (" ", " / ")
 
 

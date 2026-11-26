@@ -134,8 +134,14 @@ Dockerfile  compose.yml  compose.override.yml  compose.prod.yml  .env.example  p
 - Semua posting lewat tabel `outbox` dengan `dedupe_key` (sesi, nomor soal, langkah). Langkah state machine baru maju setelah posting terkirim → restart tidak menyebabkan posting ganda.
 - Anti-flood (`anti-flood-same-content`, `anti-flood-too-many-new`): tetap `pending`, coba lagi tick berikutnya; gagal 5× → `failed` + peringatan. Maksimal 2 posting per tick.
 - Token ditolak (401): berhenti memposting, isi `last_error`, kirim notifikasi.
-- Batas panjang teks disimpan di `settings` (perkiraan 360, **harus dites**).
-- **Asumsi yang harus dibuktikan:** ID balasan Plurk naik sesuai urutan masuk. Jika tidak, urutkan memakai waktu posting.
+- Batas panjang teks disimpan di `settings`: **360, terbukti** (361 → HTTP 400 "Content too long").
+- **Hasil uji API asli (27 Nov 2026, akun uji `triviatest` id 18216546, laporan `private/laporan/uji_plurk_20261127.txt`):**
+  - ID balasan naik sesuai urutan masuk (ID 15 digit, muat di BigInteger).
+  - `/APP/Responses/get` **bisa mengembalikan balasan yang sama dua kali** (ID sama) → `RealPlurk` membuang ID kembar.
+  - `from_response` = **offset** (indeks balasan), bukan ID; `count` didukung. Bot tetap mengambil semua lalu menyaring ID.
+  - Qualifier `:` dan `limited_to` (plurk privat) diterima; spasi ganda di teks tetap utuh.
+  - Balasan berisi sama persis berturut-turut **tidak** kena anti-flood.
+  - `/APP/Alerts/getHistory` memberi alert dengan `type`, `plurk_id`, `response_id`, `from_user`, `posted`; `getActive` kosong saat diuji; mention sungguhan belum diuji (prasyarat tahap 8).
 
 ## Jadwal
 
@@ -302,7 +308,7 @@ Skor disimpan per baris di `scores` (`play_date`, `week_start`); peringkat = pen
 - Clue 1: teks clue dari bank soal.
 - Clue 2: jumlah huruf (angka) + pola per kata. MOHAMMAD HATTA → `13 huruf: ======== =====`.
 - Clue 3: huruf awal dan akhir **seluruh jawaban** (bukan per kata) → `M======= ====A`.
-- Karakter pengganti dipilih di admin: `-`, `=`, `.`, `_`, `＿`; pemisah kata: spasi atau ` / `. Final setelah plurk uji (Plurk mungkin memformat `__`; spasi ganda bisa dirapatkan).
+- Karakter pengganti dipilih di admin: `=` (bawaan), `.`, `＿`; pemisah kata: spasi atau ` / `. **Terbukti di Plurk asli:** `--` dirender sebagai teks coret dan `__` sebagai garis bawah, jadi `-` dan `_` tidak dipakai; nilai lama yang tidak didukung otomatis kembali ke `=`.
 
 ## Bank soal
 
@@ -432,7 +438,6 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - Nama network Traefik, entrypoint HTTPS, dan certresolver di VPS; subdomain admin.
 - Arsitektur CPU VPS (`uname -m`).
 - Rumus skor final.
-- Karakter pengganti & pemisah final; batas panjang teks Plurk.
 - Gabung posting 02 (Top 10) dan 03 (ajakan) menjadi satu posting atau tidak.
 - Tujuan backup di luar VPS; notifikasi Telegram atau email.
 - Akun Plurk uji untuk tahap 4.

@@ -8,6 +8,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.clues import KARAKTER_PENGGANTI, PEMISAH_KATA
 from app.core.schedule import Jadwal
 from app.models import Setting
 
@@ -82,4 +83,9 @@ def muat_pengaturan(db: Session) -> Pengaturan:
     for s in db.scalars(select(Setting)):
         if s.key in nama:
             nilai[s.key] = s.value
+    # Nilai lama yang tidak lagi didukung (mis. karakter '-' / '_') kembali ke bawaan, agar bot tidak error.
+    if nilai["karakter_pengganti"] not in KARAKTER_PENGGANTI:
+        nilai["karakter_pengganti"] = BAWAAN["karakter_pengganti"]
+    if nilai["pemisah_kata"] not in PEMISAH_KATA:
+        nilai["pemisah_kata"] = BAWAAN["pemisah_kata"]
     return Pengaturan(**nilai)

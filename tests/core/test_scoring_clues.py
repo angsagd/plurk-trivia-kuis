@@ -26,12 +26,13 @@ def test_clue_mohammad_hatta():
 
 
 def test_clue_satu_kata_dan_karakter_lain():
-    assert clue3("BALI", "_") == "B__I"
-    assert clue2("BUNG KARNO", "-", " / ") == "9 huruf: ---- / -----"
+    assert clue3("BALI", ".") == "B..I"
+    assert clue2("BUNG KARNO", "＿", " / ") == "9 huruf: ＿＿＿＿ / ＿＿＿＿＿"
     assert pola("A BC", "＿") == "＿ ＿＿"
     assert clue3("J K ROWLING") == "J = ======G"
 
 
-def test_clue_karakter_tidak_dikenal():
+@pytest.mark.parametrize("karakter", ["*", "-", "_"])  # '-' dan '_' diformat Plurk (coret / garis bawah)
+def test_clue_karakter_tidak_dikenal(karakter):
     with pytest.raises(ValueError):
-        clue2("BALI", "*")
+        clue2("BALI", karakter)
