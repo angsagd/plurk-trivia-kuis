@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Posting Hari Libur</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F6F8; font-family: Inter, system-ui, sans-serif; color: #15181D; font-size: 14px">
+<nav aria-label="Menu admin" style="flex: 1 1 220px; background: #14171C; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; padding: 0 12px 20px">Plurk Trivia Kuis · Admin</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Dashboard</a>
+<a href="Peringkat.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Peringkat</a>
+<a href="BankSoal.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Bank soal</a>
+<a href="Pengaturan.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Kontrol &amp; pengaturan</a>
+<a href="PostingLibur.dc.html" style="display: block; padding: 12px; border-radius: 8px; background: #2A303A; color: #FFFFFF; text-decoration: none; font-weight: 600">Posting hari libur</a>
+<a href="Perintah.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Perintah &amp; easter egg</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">Posting hari libur</h1>
+<div style="color: #5B6472; margin-top: 4px">Selasa &amp; Jumat · posting informasi terjadwal di luar sesi kuis</div>
+</div>
+<span style="padding: 6px 10px; border-radius: 999px; background: #FFF4E5; color: #9A3412; font-size: 12px; font-weight: 600">Data contoh</span>
+</header>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Jadwal posting" style="flex: 2 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap"><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Selasa, 1 Desember 2026</h2><span style="color: #5B6472; font-size: 13px">Reset skor mingguan 00.00 WIB</span></div>
+<div style="border-radius: 10px; border: 1px solid #E3E6EB; padding: 14px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between">
+<div style="flex: 1 1 320px; min-width: 0; line-height: 1.5"><div style="font-weight: 600">12.00 WIB · Juara mingguan <span style="font-weight: 400; font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #EEF3FF; color: #1D4ED8">otomatis dari template</span></div><div style="color: #5B6472">🏆 Juara minggu ini (25–30 Nov): 1. melodi_rina 184 · 2. budi_gitar 152 · 3. kopi_senja 131 …</div></div>
+<div style="display: flex; gap: 8px; align-items: center"><span style="padding: 6px 10px; border-radius: 999px; background: #F1F3F6; font-size: 12px; font-weight: 600">Terjadwal</span><button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; cursor: pointer">Ubah</button></div>
+</div>
+<div style="border-radius: 10px; border: 1px solid #E3E6EB; padding: 14px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between">
+<div style="flex: 1 1 320px; min-width: 0; line-height: 1.5"><div style="font-weight: 600">16.00 WIB · Info</div><div style="color: #5B6472">Topik baru minggu depan: Film Indonesia. Siapkan ingatanmu soal Citra dan bioskop jadul!</div></div>
+<div style="display: flex; gap: 8px; align-items: center"><span style="padding: 6px 10px; border-radius: 999px; background: #F1F3F6; font-size: 12px; font-weight: 600">Terjadwal</span><button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; cursor: pointer">Ubah</button></div>
+</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Jumat, 4 Desember 2026</h2>
+<div style="border-radius: 10px; border: 1px dashed #C5CBD3; padding: 14px; color: #5B6472">Belum ada posting. Hari libur tanpa posting akan sepi, tambahkan minimal satu.</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Sudah lewat</h2><a href="#" style="font-size: 13px">Lihat semua</a></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; line-height: 1.5"><span>Jumat, 27 Nov · 15.00 · Kuis tebak intro lagu minggu depan!</span><span style="color: #166534; font-weight: 600">Terkirim · 14 respons</span></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; line-height: 1.5"><span>Selasa, 24 Nov · 12.00 · Juara mingguan</span><span style="color: #166534; font-weight: 600">Terkirim · 31 respons</span></div>
+</div>
+</section>
+<section aria-label="Buat posting" style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Buat posting</h2>
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
+<label style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Hari libur
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF"><option>Jumat, 4 Des 2026</option><option>Selasa, 8 Des 2026</option><option>Jumat, 11 Des 2026</option></select>
+</label>
+<label style="flex: 1 1 100px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Jam (WIB)
+<input type="time" value="15:00" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D">
+</label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Qualifier
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF"><option>says</option><option>shares</option><option>asks</option><option>thinks</option></select>
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Isi posting
+<textarea rows="5" placeholder="Tulis info untuk pemain…" style="padding: 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; resize: vertical"></textarea>
+</label>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #5B6472"><span>0 / 360 karakter</span><label style="display: inline-flex; gap: 6px; align-items: center; color: #15181D"><input type="checkbox" checked>Izinkan balasan</label></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Simpan jadwal</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Kirim uji (privat)</button>
+</div>
+<p style="margin: 0; font-size: 13px; color: #5B6472; line-height: 1.5">Posting dikirim oleh cron yang sama dengan bot kuis, jadi ikut berhenti bila bot dihentikan.</p>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

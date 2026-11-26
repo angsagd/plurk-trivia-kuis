@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Peringkat Pemain</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F6F8; font-family: Inter, system-ui, sans-serif; color: #15181D; font-size: 14px">
+<nav aria-label="Menu admin" style="flex: 1 1 220px; background: #14171C; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; padding: 0 12px 20px">Plurk Trivia Kuis · Admin</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Dashboard</a>
+<a href="Peringkat.dc.html" style="display: block; padding: 12px; border-radius: 8px; background: #2A303A; color: #FFFFFF; text-decoration: none; font-weight: 600">Peringkat</a>
+<a href="BankSoal.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Bank soal</a>
+<a href="Pengaturan.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Kontrol &amp; pengaturan</a>
+<a href="PostingLibur.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Posting hari libur</a>
+<a href="Perintah.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Perintah &amp; easter egg</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">Peringkat</h1>
+<div style="color: #5B6472; margin-top: 4px">Skor pemain per periode, dengan detail dan koreksi</div>
+</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<span style="padding: 6px 10px; border-radius: 999px; background: #FFF4E5; color: #9A3412; font-size: 12px; font-weight: 600">Data contoh</span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Ekspor CSV</button>
+</div>
+</header>
+<section aria-label="Filter" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end">
+<div role="group" aria-label="Periode" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #F1F3F6; border-radius: 10px">
+<sc-for list="{{periods}}" as="p" hint-placeholder-count="4">
+<button type="button" onClick="{{p.pick}}" style="{{p.style}}">{{p.label}}</button>
+</sc-for>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Dari
+<input type="date" value="2026-11-25" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Sampai
+<input type="date" value="2026-11-30" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Topik
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF">
+<option>Semua topik</option><option>Musik</option><option>Sejarah Indonesia</option><option>Geografi</option><option>Film</option><option>Olahraga</option>
+</select>
+</label>
+<label style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Cari pemain
+<input type="search" placeholder="nama akun Plurk" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D">
+</label>
+</section>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Tabel peringkat" style="flex: 2 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px">
+<h2 style="margin: 0 0 4px; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">{{title}}</h2>
+<div style="color: #5B6472; margin-bottom: 16px">{{subtitle}}</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 600px; border-collapse: collapse">
+<thead><tr style="text-align: left; color: #5B6472; font-size: 13px"><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">#</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Pemain</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Skor</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Benar</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Sesi ikut</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Rata-rata terjawab</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500"><span style="position: absolute; left: -9999px">Aksi</span></th></tr></thead>
+<tbody>
+<tr style="background: #EEF3FF"><td style="padding: 10px 8px">1</td><td style="padding: 10px 8px; font-weight: 600">melodi_rina</td><td style="padding: 10px 8px; text-align: right; font-weight: 600">184</td><td style="padding: 10px 8px; text-align: right">21</td><td style="padding: 10px 8px; text-align: right">14</td><td style="padding: 10px 8px">Soal / Clue 1</td><td style="padding: 10px 8px"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">2</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">budi_gitar</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">152</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">19</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">15</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 1</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">3</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">kopi_senja</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">131</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">17</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">12</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 2</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">4</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">nada_minor</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">97</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">12</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">9</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 1</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">5</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">si_rebab</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">88</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">13</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">11</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 3</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">6</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">gamelan_kita</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">74</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">9</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">8</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 1</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">7</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">rindu_keroncong</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">61</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">8</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">10</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 2</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+<tr><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">8</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">tebak_terus <span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #FFF4EF; color: #9A3412">diblokir</span></td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right; font-weight: 600">0</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">6</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; text-align: right">7</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">Clue 3</td><td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><a href="#detail">Detail</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="detail" aria-label="Detail pemain" style="flex: 1 1 320px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div>
+<div style="color: #5B6472; font-size: 13px">Detail pemain</div>
+<h2 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">melodi_rina</h2>
+<a href="https://www.plurk.com/" style="font-size: 13px">Profil Plurk</a>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<div style="flex: 1 1 120px; padding: 12px; border-radius: 8px; background: #F1F3F6"><div style="font-size: 12px; color: #5B6472">Semua waktu</div><div style="font-size: 20px; font-weight: 600">1.926</div></div>
+<div style="flex: 1 1 120px; padding: 12px; border-radius: 8px; background: #F1F3F6"><div style="font-size: 12px; color: #5B6472">Juara mingguan</div><div style="font-size: 20px; font-weight: 600">3×</div></div>
+<div style="flex: 1 1 120px; padding: 12px; border-radius: 8px; background: #F1F3F6"><div style="font-size: 12px; color: #5B6472">Topik terkuat</div><div style="font-size: 20px; font-weight: 600">Musik</div></div>
+</div>
+<div>
+<h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600">Jawaban benar terakhir</h3>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 1.4">
+<li style="display: flex; justify-content: space-between; gap: 8px"><span>Senin · BALI · Soal</span><strong>4</strong></li>
+<li style="display: flex; justify-content: space-between; gap: 8px"><span>Senin · TOKYO · Clue 1</span><strong>3</strong></li>
+<li style="display: flex; justify-content: space-between; gap: 8px"><span>Minggu · JUPITER · Clue 2</span><strong>3</strong></li>
+</ul>
+</div>
+<div style="border-top: 1px solid #E3E6EB; padding-top: 16px; display: flex; flex-direction: column; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Koreksi skor minggu ini (alasan wajib diisi)
+<div style="display: flex; gap: 8px">
+<input type="number" value="0" aria-label="Jumlah koreksi" style="width: 90px; min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit">
+<input type="text" placeholder="Alasan koreksi" aria-label="Alasan koreksi" style="flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit">
+</div>
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Simpan koreksi</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #F3C9B5; background: #FFF4EF; color: #9A3412; font: inherit; font-weight: 500; cursor: pointer">Blokir pemain</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+constructor(props) { super(props); this.state = { period: 'minggu' }; }
+renderVals() {
+const defs = [
+{ id: 'minggu', label: 'Minggu ini', title: 'Minggu ini (Rabu–Senin)', sub: 'Rabu 25 – Senin 30 November 2026 · reset Selasa 1 Desember' },
+{ id: 'hari', label: 'Hari ini', title: 'Hari ini', sub: 'Senin 30 November 2026 · 2 dari 5 sesi' },
+{ id: 'semua', label: 'Semua waktu', title: 'Semua waktu', sub: 'Sejak bot pertama berjalan' },
+{ id: 'rentang', label: 'Rentang tanggal', title: 'Rentang tanggal', sub: 'Sesuai tanggal yang dipilih di filter' }
+];
+const cur = defs.find((d) => d.id === this.state.period) || defs[0];
+const on = 'min-height: 40px; padding: 0 14px; border-radius: 8px; border: 0; background: #FFFFFF; color: #15181D; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.08)';
+const off = 'min-height: 40px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #5B6472; font: inherit; font-weight: 500; cursor: pointer';
+return {
+periods: defs.map((d) => ({ label: d.label, style: d.id === cur.id ? on : off, pick: () => this.setState({ period: d.id }) })),
+title: cur.title,
+subtitle: cur.sub
+};
+}
+}
+</script>
+</body>
+</html>

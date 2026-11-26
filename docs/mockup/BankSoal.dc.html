@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Bank Soal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F6F8; font-family: Inter, system-ui, sans-serif; color: #15181D; font-size: 14px">
+<nav aria-label="Menu admin" style="flex: 1 1 220px; background: #14171C; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; padding: 0 12px 20px">Plurk Trivia Kuis · Admin</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Dashboard</a>
+<a href="Peringkat.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Peringkat</a>
+<a href="BankSoal.dc.html" style="display: block; padding: 12px; border-radius: 8px; background: #2A303A; color: #FFFFFF; text-decoration: none; font-weight: 600">Bank soal</a>
+<a href="Pengaturan.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Kontrol &amp; pengaturan</a>
+<a href="PostingLibur.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Posting hari libur</a>
+<a href="Perintah.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Perintah &amp; easter egg</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">Bank soal</h1>
+<div style="color: #5B6472; margin-top: 4px">5 topik · 3.550 soal · peluang topik terpilih sebanding jumlah soalnya</div>
+</div>
+<span style="padding: 6px 10px; border-radius: 999px; background: #FFF4E5; color: #9A3412; font-size: 12px; font-weight: 600">Data contoh</span>
+</header>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Unggah topik" style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Unggah topik</h2>
+<label style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 24px; border: 2px dashed #C5CBD3; border-radius: 12px; text-align: center; color: #5B6472; cursor: pointer">
+<strong style="color: #15181D">trivia_06_sejarah_dunia.txt</strong>
+<span style="font-size: 13px">Nama file: trivia_NN_nama_topik.txt · isi soal|clue|jawaban · UTF-8</span>
+<input type="file" accept=".txt" style="position: absolute; left: -9999px">
+</label>
+<div style="border-radius: 10px; border: 1px solid #E3E6EB; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; line-height: 1.5">
+<span style="font-size: 13px; color: #5B6472">Dibaca dari nama file</span>
+<span>Nomor <strong>06</strong> · Nama topik <strong>Sejarah Dunia</strong></span>
+<span style="font-size: 13px; color: #5B6472">Topik baru. Garis bawah menjadi spasi, huruf awal tiap kata menjadi kapital. Jika nama topik sudah ada, isinya diperbarui.</span>
+<span style="font-size: 13px; color: #5B6472">Cek kemiripan: tidak ada topik lama dengan isi soal yang sama. (Bila mayoritas soal sama dengan topik lain, admin diminta memakai Ganti nama.)</span>
+</div>
+<div style="border-radius: 10px; background: #E7F5EC; padding: 16px; display: flex; flex-direction: column; gap: 6px; line-height: 1.5">
+<strong style="color: #166534">Validasi lolos</strong>
+<span>500 soal dibaca · 500 lolos · 0 error · 0 peringatan</span>
+<span>Jawaban 4–19 huruf · soal terpanjang 131 karakter</span>
+<span style="color: #5B6472; font-size: 13px">766 pasangan soal saling menyebut jawaban. Bot tidak akan menempatkannya di sesi yang sama.</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Simpan ke bank soal</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Unduh laporan</button>
+</div>
+<p style="margin: 0; font-size: 13px; color: #5B6472; line-height: 1.5">Saat memperbarui topik, soal dikenali dari teks soalnya. Soal yang sudah pernah keluar tetap tercatat meski urutan baris berubah.</p>
+</section>
+<section aria-label="Daftar topik" style="flex: 2 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px">
+<h2 style="margin: 0 0 16px; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Topik</h2>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 640px; border-collapse: collapse">
+<thead><tr style="text-align: left; color: #5B6472; font-size: 13px"><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Topik</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Total</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Terpakai</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Sisa</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500; text-align: right">Peluang</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Status</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500"><span style="position: absolute; left: -9999px">Aksi</span></th></tr></thead>
+<tbody>
+<tr><td style="padding: 12px 8px; font-weight: 600">Musik<div style="font-weight: 400; font-size: 12px; color: #5B6472">trivia_01_musik.txt · siklus 1</div></td><td style="padding: 12px 8px; text-align: right">500</td><td style="padding: 12px 8px; text-align: right">37</td><td style="padding: 12px 8px; text-align: right">463</td><td style="padding: 12px 8px; text-align: right">14%</td><td style="padding: 12px 8px"><label style="display: inline-flex; gap: 6px; align-items: center"><input type="checkbox" checked>Aktif</label></td><td style="padding: 12px 8px"><a href="#cari">Lihat soal</a> · <button type="button" onClick="{{rn1}}" style="border: 0; background: none; padding: 0; color: #1D4ED8; font: inherit; text-decoration: underline; cursor: pointer">Ganti nama</button></td></tr>
+<tr><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; font-weight: 600">Sejarah Indonesia<div style="font-weight: 400; font-size: 12px; color: #5B6472">trivia_02_sejarah_indonesia.txt · siklus 1</div></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">1.200</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">348</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">852</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">34%</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><label style="display: inline-flex; gap: 6px; align-items: center"><input type="checkbox" checked>Aktif</label></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><a href="#cari">Lihat soal</a> · <button type="button" onClick="{{rn2}}" style="border: 0; background: none; padding: 0; color: #1D4ED8; font: inherit; text-decoration: underline; cursor: pointer">Ganti nama</button></td></tr>
+<tr><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; font-weight: 600">Geografi<div style="font-weight: 400; font-size: 12px; color: #5B6472">trivia_03_geografi.txt · siklus 1</div></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">900</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">288</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">612</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">25%</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><label style="display: inline-flex; gap: 6px; align-items: center"><input type="checkbox" checked>Aktif</label></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><a href="#cari">Lihat soal</a> · <button type="button" onClick="{{rn3}}" style="border: 0; background: none; padding: 0; color: #1D4ED8; font: inherit; text-decoration: underline; cursor: pointer">Ganti nama</button></td></tr>
+<tr><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; font-weight: 600">Film<div style="font-weight: 400; font-size: 12px; color: #5B6472">trivia_04_film.txt · siklus 1</div></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">650</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">390</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">260</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">18%</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><label style="display: inline-flex; gap: 6px; align-items: center"><input type="checkbox" checked>Aktif</label></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><a href="#cari">Lihat soal</a> · <button type="button" onClick="{{rn4}}" style="border: 0; background: none; padding: 0; color: #1D4ED8; font: inherit; text-decoration: underline; cursor: pointer">Ganti nama</button></td></tr>
+<tr><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; font-weight: 600">Olahraga<div style="font-weight: 400; font-size: 12px; color: #9A3412">trivia_05_olahraga.txt · hampir habis, diputar ulang otomatis</div></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">300</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">273</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right; color: #9A3412; font-weight: 600">27</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6; text-align: right">8%</td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><label style="display: inline-flex; gap: 6px; align-items: center"><input type="checkbox" checked>Aktif</label></td><td style="padding: 12px 8px; border-top: 1px solid #F1F3F6"><a href="#cari">Lihat soal</a> · <button type="button" onClick="{{rn5}}" style="border: 0; background: none; padding: 0; color: #1D4ED8; font: inherit; text-decoration: underline; cursor: pointer">Ganti nama</button></td></tr>
+</tbody>
+</table>
+</div>
+<sc-if value="{{renaming}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: 16px; border: 1px solid #C7D7FE; background: #F5F8FF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap"><h3 style="margin: 0; font-size: 16px; font-weight: 600">Ganti nama topik: {{rnName}}</h3><span style="font-size: 13px; color: #5B6472">File sekarang: {{rnFile}}</span></div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Nama file baru
+<input type="text" value="{{rnInput}}" onInput="{{onType}}" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF">
+</label>
+<div style="{{rnMsgStyle}}">{{rnMsg}}</div>
+<p style="margin: 0; font-size: 13px; color: #5B6472; line-height: 1.5">Riwayat soal terpakai, siklus, skor, dan statistik topik tetap. Setelah diganti, unggahan berikutnya harus memakai nama file baru. Tercatat di log admin.</p>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Simpan nama baru</button><button type="button" onClick="{{rnClose}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Batal</button></div>
+</div>
+</sc-if>
+</section>
+</div>
+<section id="cari" aria-label="Cari soal" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end">
+<label style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Cari soal, clue, atau jawaban
+<input type="search" value="hatta" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D">
+</label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Topik
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF"><option>Semua topik</option><option>Musik</option></select>
+</label>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 720px; border-collapse: collapse; font-size: 13px; line-height: 1.45">
+<thead><tr style="text-align: left; color: #5B6472"><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Soal</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Jawaban</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Riwayat</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500"><span style="position: absolute; left: -9999px">Aksi</span></th></tr></thead>
+<tbody>
+<tr><td style="padding: 10px 8px; vertical-align: top">Siapa wakil presiden pertama Indonesia?<div style="color: #5B6472">Clue: Dijuluki Bapak Koperasi Indonesia.</div></td><td style="padding: 10px 8px; vertical-align: top; font-weight: 600">MOHAMMAD HATTA</td><td style="padding: 10px 8px; vertical-align: top">Keluar 1× · terjawab di Clue 2</td><td style="padding: 10px 8px; vertical-align: top"><button type="button" style="min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #F3C9B5; background: #FFF4EF; color: #9A3412; font: inherit; cursor: pointer">Nonaktifkan</button></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+constructor(props) { super(props); this.state = { rn: null, input: '' }; }
+renderVals() {
+const topics = [['01', 'musik'], ['02', 'sejarah_indonesia'], ['03', 'geografi'], ['04', 'film'], ['05', 'olahraga']];
+const nama = (slug) => slug.split('_').map((w) => /[A-Z]/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+const parse = (f) => { const m = /^trivia_(\d{2})_([A-Za-z0-9]+(?:_[A-Za-z0-9]+)*)\.txt$/.exec(f.trim()); return m && m[1] !== '00' ? { no: m[1], name: nama(m[2]) } : null; };
+const cur = this.state.rn === null ? null : topics[this.state.rn];
+const open = (i) => () => this.setState({ rn: i, input: 'trivia_' + topics[i][0] + '_' + topics[i][1] + '.txt' });
+let msg = '', ok = false;
+if (cur) {
+const p = parse(this.state.input);
+const others = topics.filter((t) => t !== cur);
+if (!p) msg = 'Format salah. Gunakan trivia_NN_nama_topik.txt';
+else if (p.name.toLowerCase() === nama(cur[1]).toLowerCase() && p.no === cur[0]) msg = 'Nama belum berubah.';
+else if (others.some((t) => nama(t[1]).toLowerCase() === p.name.toLowerCase())) msg = 'Nama topik "' + p.name + '" sudah dipakai topik lain.';
+else if (others.some((t) => t[0] === p.no)) msg = 'Nomor ' + p.no + ' sudah dipakai topik lain.';
+else { ok = true; msg = 'Akan menjadi: nomor ' + p.no + ' · "' + p.name + '"'; }
+}
+return {
+rn1: open(0), rn2: open(1), rn3: open(2), rn4: open(3), rn5: open(4),
+renaming: cur !== null,
+rnName: cur ? nama(cur[1]) : '',
+rnFile: cur ? 'trivia_' + cur[0] + '_' + cur[1] + '.txt' : '',
+rnInput: this.state.input,
+onType: (e) => this.setState({ input: e.target.value }),
+rnClose: () => this.setState({ rn: null }),
+rnMsg: msg,
+rnMsgStyle: 'border-radius: 8px; padding: 10px 12px; font-size: 13px; ' + (ok ? 'background: #E7F5EC; color: #166534' : 'background: #FFF4EF; color: #9A3412')
+};
+}
+}
+</script>
+</body>
+</html>

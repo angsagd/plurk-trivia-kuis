@@ -1,0 +1,26 @@
+# --- Rahasia & konfigurasi (JANGAN pernah di-commit) ---
+.env
+.env.*
+!.env.example
+
+# --- Data privat: bank soal asli, laporan review, database, backup ---
+private/
+data/
+backups/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# --- Python & alat ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# --- macOS / editor ---
+.DS_Store
+.idea/
+.vscode/

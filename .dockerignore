@@ -1,0 +1,28 @@
+# Pola tanpa ** hanya berlaku di root konteks build; pakai **/ untuk semua folder.
+
+# --- Rahasia ---
+.git
+**/.env
+**/.env.*
+
+# --- Data privat: bank soal asli, laporan, database, backup ---
+private/
+**/private/
+data/
+backups/
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.sqlite3
+
+# --- Tidak dibutuhkan di image ---
+docs/
+
+# --- Python & alat ---
+**/__pycache__
+**/*.py[cod]
+.venv/
+.pytest_cache/
+**/.pytest_cache
+.ruff_cache/
+**/.DS_Store

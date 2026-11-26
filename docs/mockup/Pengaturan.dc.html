@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Kontrol dan Pengaturan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F6F8; font-family: Inter, system-ui, sans-serif; color: #15181D; font-size: 14px">
+<nav aria-label="Menu admin" style="flex: 1 1 220px; background: #14171C; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; padding: 0 12px 20px">Plurk Trivia Kuis · Admin</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Dashboard</a>
+<a href="Peringkat.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Peringkat</a>
+<a href="BankSoal.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Bank soal</a>
+<a href="Pengaturan.dc.html" style="display: block; padding: 12px; border-radius: 8px; background: #2A303A; color: #FFFFFF; text-decoration: none; font-weight: 600">Kontrol &amp; pengaturan</a>
+<a href="PostingLibur.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Posting hari libur</a>
+<a href="Perintah.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Perintah &amp; easter egg</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<header>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">Kontrol &amp; pengaturan</h1>
+<div style="color: #5B6472; margin-top: 4px">Perubahan berlaku di tick berikutnya (maksimal 1 menit), tanpa restart bot</div>
+</header>
+<section aria-label="Kontrol bot" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Status bot</h2>
+<div style="display: flex; align-items: center; gap: 10px"><span style="{{statusStyle}}">{{statusLabel}}</span><span style="color: #5B6472">{{statusNote}}</span></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<button type="button" onClick="{{goAktif}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Jalankan</button>
+<button type="button" onClick="{{goJeda}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Jeda setelah sesi ini</button>
+<button type="button" onClick="{{goStop}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #F3C9B5; background: #FFF4EF; color: #9A3412; font: inherit; font-weight: 500; cursor: pointer">Hentikan sekarang</button>
+<label style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 8px; background: #F1F3F6; cursor: pointer"><input type="checkbox">Mode uji (posting privat ke akun admin)</label>
+</div>
+</section>
+<section aria-label="Karakter pengganti huruf" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Karakter pengganti huruf</h2>
+<div role="group" aria-label="Karakter" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{chars}}" as="c" hint-placeholder-count="5">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="{{c.style}}">{{c.label}}</button>
+</sc-for>
+</div>
+<div role="group" aria-label="Pemisah kata" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="color: #5B6472; font-size: 13px">Pemisah kata:</span>
+<sc-for list="{{seps}}" as="s" hint-placeholder-count="2">
+<button type="button" onClick="{{s.pick}}" aria-pressed="{{s.on}}" style="{{s.style}}">{{s.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="flex: 1 1 360px; border-radius: 12px; background: #F1F3F6; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="color: #5B6472; font-size: 13px">Pratinjau · jawaban contoh: MOHAMMAD HATTA</div>
+<div style="background: #FFFFFF; border-radius: 8px; padding: 12px 14px; line-height: 1.5">💡 Clue 2: <span style="font-size: 16px; letter-spacing: 1px; white-space: pre">{{clue2}}</span></div>
+<div style="background: #FFFFFF; border-radius: 8px; padding: 12px 14px; line-height: 1.5">💡 Clue 3: <span style="font-size: 16px; letter-spacing: 1px; white-space: pre">{{clue3}}</span></div>
+<button type="button" style="align-self: flex-start; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Kirim plurk uji (privat)</button>
+</div>
+</section>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Jadwal" style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Jadwal</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<label style="flex: 1 1 120px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Mulai (WIB)<input type="time" value="12:00" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 120px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Selesai (WIB)<input type="time" value="22:00" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 120px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Sesi setiap<select style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF"><option>1 jam</option><option selected>2 jam</option><option>3 jam</option></select></label>
+</div>
+<div style="color: #5B6472; font-size: 13px">Sesi hari aktif: 12.00 · 14.00 · 16.00 · 18.00 · 20.00 WIB</div>
+<div role="group" aria-label="Hari aktif" style="display: flex; flex-wrap: wrap; gap: 6px">
+<button type="button" aria-pressed="true" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 0; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Sen</button>
+<button type="button" aria-pressed="false" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 1px dashed #C5CBD3; background: #FFFFFF; color: #5B6472; font: inherit">Sel</button>
+<button type="button" aria-pressed="true" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 0; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Rab</button>
+<button type="button" aria-pressed="true" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 0; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Kam</button>
+<button type="button" aria-pressed="false" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 1px dashed #C5CBD3; background: #FFFFFF; color: #5B6472; font: inherit">Jum</button>
+<button type="button" aria-pressed="true" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 0; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Sab</button>
+<button type="button" aria-pressed="true" style="min-width: 52px; min-height: 44px; border-radius: 8px; border: 0; background: #1D4ED8; color: #FFFFFF; font: inherit; font-weight: 600">Min</button>
+</div>
+<div style="color: #5B6472; font-size: 13px">Selasa &amp; Jumat libur · reset skor mingguan Selasa 00.00 WIB</div>
+</section>
+<section aria-label="Aturan permainan" style="flex: 1 1 360px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Aturan permainan</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Soal per sesi<input type="number" value="10" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Jarak antar fase (menit)<input type="number" value="1" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Batas jawaban per pemain per menit<input type="number" value="3" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Panjang balasan maksimal<input type="number" value="40" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Rumus skor
+<select style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; background: #FFFFFF"><option>round up(jumlah huruf ÷ (1 + clue keluar))</option><option>[rumus baru hasil riset]</option></select>
+</label>
+<div style="font-size: 13px; color: #5B6472">Contoh SOEKARNO (8 huruf): Soal 8 · Clue 1 4 · Clue 2 3 · Clue 3 2</div>
+</section>
+</div>
+<section aria-label="Template pesan" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 12px; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Template pesan</h2>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: #EEF3FF; color: #1D4ED8; font: inherit; font-weight: 600; cursor: pointer">Sapaan sesi</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Top 10 mingguan</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Siap soal + soal</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Pemenang soal</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Jawaban dibuka</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Ranking hari ini</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Farewell</button>
+<button type="button" style="text-align: left; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; font: inherit; cursor: pointer">Juara mingguan (Selasa)</button>
+</div>
+<div style="flex: 3 1 420px; display: flex; flex-direction: column; gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Isi template: Sapaan sesi
+<textarea rows="4" style="padding: 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; resize: vertical">🎯 Selamat {waktu}! Kuis {hari} sesi {sesi} ({jam} WIB) dimulai. 10 soal, jawab di balasan. Yang pertama benar dapat poin!</textarea>
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px">
+<span style="color: #5B6472">Isian:</span>
+<code style="padding: 4px 8px; border-radius: 6px; background: #F1F3F6">{waktu}</code><code style="padding: 4px 8px; border-radius: 6px; background: #F1F3F6">{hari}</code><code style="padding: 4px 8px; border-radius: 6px; background: #F1F3F6">{sesi}</code><code style="padding: 4px 8px; border-radius: 6px; background: #F1F3F6">{jam}</code><code style="padding: 4px 8px; border-radius: 6px; background: #F1F3F6">{sesi_berikutnya}</code>
+</div>
+<div style="border-radius: 8px; background: #F1F3F6; padding: 12px 14px; line-height: 1.5"><span style="color: #5B6472; font-size: 13px">Pratinjau:</span><br>🎯 Selamat siang! Kuis Senin sesi 2 (14.00 WIB) dimulai. 10 soal, jawab di balasan. Yang pertama benar dapat poin!</div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap">
+<span style="color: #5B6472; font-size: 13px">112 / 360 karakter</span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Simpan template</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+constructor(props) { super(props); this.state = { ch: '=', sep: ' ', status: 'aktif' }; }
+renderVals() {
+const ans = 'MOHAMMAD HATTA';
+const words = ans.split(' ');
+const ch = this.state.ch;
+const sep = this.state.sep;
+const n = words.join('').length;
+let k = 0;
+const clue2 = n + ' huruf: ' + words.map((w) => ch.repeat(w.length)).join(sep);
+const clue3 = words.map((w) => w.split('').map((c) => { const i = k++; return (i === 0 || i === n - 1) ? c : ch; }).join('')).join(sep);
+const on = 'min-height: 44px; padding: 0 14px; border-radius: 8px; border: 2px solid #1D4ED8; background: #EEF3FF; color: #1D4ED8; font: inherit; font-weight: 600; cursor: pointer';
+const off = 'min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; color: #15181D; font: inherit; cursor: pointer';
+const charDefs = [['-', 'Dash  -'], ['=', 'Sama dengan  ='], ['.', 'Titik  .'], ['_', 'Garis bawah  _'], ['＿', 'Garis bawah lebar  ＿']];
+const sepDefs = [[' ', 'Spasi'], [' / ', 'Garis miring  /']];
+const st = {
+aktif: ['Aktif', 'Sesi berjalan sesuai jadwal', '#E7F5EC', '#166534'],
+jeda: ['Jeda dijadwalkan', 'Berhenti setelah sesi ini selesai', '#FFF7E0', '#854D0E'],
+stop: ['Berhenti', 'Sesi dihentikan, pemberitahuan dikirim ke thread', '#FFF4EF', '#9A3412']
+}[this.state.status];
+return {
+clue2: clue2,
+clue3: clue3,
+chars: charDefs.map((d) => ({ label: d[1], on: d[0] === ch, style: d[0] === ch ? on : off, pick: () => this.setState({ ch: d[0] }) })),
+seps: sepDefs.map((d) => ({ label: d[1], on: d[0] === sep, style: d[0] === sep ? on : off, pick: () => this.setState({ sep: d[0] }) })),
+statusLabel: st[0],
+statusNote: st[1],
+statusStyle: 'padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px; background: ' + st[2] + '; color: ' + st[3],
+goAktif: () => this.setState({ status: 'aktif' }),
+goJeda: () => this.setState({ status: 'jeda' }),
+goStop: () => this.setState({ status: 'stop' })
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# BANK SOAL BOT KUIS PLURK
+# Format : soal|clue|jawaban   (satu soal per baris, encoding UTF-8)
+# Soal   : maks 180 karakter
+# Clue   : maks 180 karakter, jangan menuliskan jawaban di dalamnya
+# Jawaban: hanya huruf A-Z dan spasi, 4-20 huruf (spasi tidak dihitung)
+# Jangan memakai tanda | di dalam soal atau clue.
+# Baris yang diawali # diabaikan.
+Siapa presiden pertama Republik Indonesia?|Dijuluki Putra Sang Fajar, lahir di Surabaya|SOEKARNO
+Siapa wakil presiden pertama Indonesia?|Dijuluki Bapak Koperasi Indonesia|MOHAMMAD HATTA
+Pulau di Indonesia yang dijuluki Pulau Dewata?|Terkenal dengan Pura Tanah Lot dan Pantai Kuta|BALI
+Ibu kota negara Jepang?|Dahulu kota ini bernama Edo|TOKYO
+Planet terbesar di tata surya kita?|Memiliki Bintik Merah Raksasa|JUPITER
+Alat musik bambu asal Jawa Barat yang dimainkan dengan cara digoyang?|Diakui UNESCO sebagai warisan budaya tak benda pada 2010|ANGKLUNG
+Burung yang menjadi lambang negara Indonesia?|Mencengkeram pita bertuliskan Bhinneka Tunggal Ika|GARUDA
+Candi Buddha terbesar di dunia yang terletak di Magelang?|Dibangun pada masa Dinasti Syailendra|BOROBUDUR

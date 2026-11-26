@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Dashboard Admin Kuis</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F6F8; font-family: Inter, system-ui, sans-serif; color: #15181D; font-size: 14px">
+<nav aria-label="Menu admin" style="flex: 1 1 220px; background: #14171C; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; padding: 0 12px 20px">Plurk Trivia Kuis · Admin</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; background: #2A303A; color: #FFFFFF; text-decoration: none; font-weight: 600">Dashboard</a>
+<a href="Peringkat.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Peringkat</a>
+<a href="BankSoal.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Bank soal</a>
+<a href="Pengaturan.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Kontrol &amp; pengaturan</a>
+<a href="PostingLibur.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Posting hari libur</a>
+<a href="Perintah.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Perintah &amp; easter egg</a>
+<div style="margin-top: 24px; padding: 12px; border-radius: 8px; border: 1px solid #2A303A; color: #C9CED6; font-size: 13px; line-height: 1.5">Bot: <strong style="color: #86EFAC">Aktif</strong><br>Tick terakhir 14.23.00 WIB</div>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">Dashboard</h1>
+<div style="color: #5B6472; margin-top: 4px">Senin, 30 November 2026 · hari aktif · hari terakhir periode mingguan (reset besok)</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="padding: 6px 10px; border-radius: 999px; background: #FFF4E5; color: #9A3412; font-size: 12px; font-weight: 600">Data contoh</span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Mode uji</button>
+<a href="Pengaturan.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 8px; background: #15181D; color: #FFFFFF; text-decoration: none; font-weight: 500">Kontrol bot</a>
+</div>
+</header>
+<section aria-label="Ringkasan hari ini" style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="flex: 1 1 200px; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<div style="color: #5B6472; font-size: 13px">Pemain aktif hari ini</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 600; margin-top: 8px">38</div>
+<div style="color: #5B6472; font-size: 13px; margin-top: 4px">Minggu ini 121 pemain</div>
+</div>
+<div style="flex: 1 1 200px; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<div style="color: #5B6472; font-size: 13px">Jawaban masuk hari ini</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 600; margin-top: 8px">412</div>
+<div style="color: #5B6472; font-size: 13px; margin-top: 4px">27 diabaikan (batas 3/menit)</div>
+</div>
+<div style="flex: 1 1 200px; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<div style="color: #5B6472; font-size: 13px">Soal terjawab hari ini</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 600; margin-top: 8px">11 / 13</div>
+<div style="color: #5B6472; font-size: 13px; margin-top: 4px">Rata-rata terjawab di Clue 1</div>
+</div>
+<div style="flex: 1 1 200px; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<div style="color: #5B6472; font-size: 13px">Sesi berikutnya</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 600; margin-top: 8px">16.00 WIB</div>
+<div style="color: #5B6472; font-size: 13px; margin-top: 4px">Sesi 3 dari 5 hari ini</div>
+</div>
+</section>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Sesi berjalan" style="flex: 2 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<div>
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Sesi berjalan</h2>
+<div style="color: #5B6472; margin-top: 4px">Sesi 2 · 14.00 WIB · Soal 4 dari 10 · Topik: Sejarah (contoh)</div>
+</div>
+<span style="padding: 6px 10px; border-radius: 999px; background: #E7F5EC; color: #166534; font-size: 12px; font-weight: 600">● Berlangsung</span>
+</div>
+<ol aria-label="Fase soal" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px">
+<li style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; background: #F1F3F6; color: #5B6472; font-size: 13px">Soal<br><strong style="color: #15181D">13 poin</strong></li>
+<li style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; background: #F1F3F6; color: #5B6472; font-size: 13px">Clue 1<br><strong style="color: #15181D">7 poin</strong></li>
+<li style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; background: #1D4ED8; color: #FFFFFF; font-size: 13px">Clue 2 · sekarang<br><strong>5 poin</strong></li>
+<li style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; border: 1px dashed #C5CBD3; color: #5B6472; font-size: 13px">Clue 3<br><strong style="color: #15181D">4 poin</strong></li>
+<li style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; border: 1px dashed #C5CBD3; color: #5B6472; font-size: 13px">Buka jawaban<br><strong style="color: #15181D">0 poin</strong></li>
+</ol>
+<div style="display: flex; flex-direction: column; gap: 10px; line-height: 1.5">
+<div><span style="color: #5B6472">Soal:</span> Siapa wakil presiden pertama Indonesia?</div>
+<div><span style="color: #5B6472">Clue 1:</span> Dijuluki Bapak Koperasi Indonesia.</div>
+<div><span style="color: #5B6472">Clue 2:</span> <code style="font-size: 15px; background: #F1F3F6; padding: 2px 6px; border-radius: 4px">13 huruf: ======== =====</code></div>
+<div><span style="color: #5B6472">Jawaban (hanya admin):</span> <strong>MOHAMMAD HATTA</strong></div>
+</div>
+<div>
+<h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600">Jawaban masuk di fase ini</h3>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 520px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; color: #5B6472"><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Waktu</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Pemain</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Isi balasan</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Status</th></tr></thead>
+<tbody>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">14.22.41</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">melodi_rina</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">soekarno?</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">Salah · 1/3</td></tr>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">14.22.58</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">budi_gitar</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">sjahrir</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">Salah · 1/3</td></tr>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">14.23.12</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">kopi_senja</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">hatta kah</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">Salah · 1/3 <span style="color: #5B6472">(kurang "MOHAMMAD")</span></td></tr>
+<tr><td style="padding: 8px">14.23.30</td><td style="padding: 8px">tebak_terus</td><td style="padding: 8px">tan malaka</td><td style="padding: 8px; color: #9A3412">Diabaikan · jawaban ke-4</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Lewati soal ini</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #F3C9B5; background: #FFF4EF; color: #9A3412; font: inherit; font-weight: 500; cursor: pointer">Hentikan sesi</button>
+<a href="https://www.plurk.com/" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 8px; text-decoration: none; font-weight: 500">Buka thread di Plurk</a>
+</div>
+</section>
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+<section aria-label="Peringatan" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 12px; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Peringatan</h2>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; line-height: 1.45">
+<li style="padding: 10px 12px; border-radius: 8px; background: #FFF4EF; color: #7C2D12">Stok topik Olahraga tersisa 9%. Topik akan diputar ulang otomatis saat habis.</li>
+<li style="padding: 10px 12px; border-radius: 8px; background: #F1F3F6">Anti-flood 1× pukul 12.34 WIB, posting dikirim ulang di tick berikutnya.</li>
+<li style="padding: 10px 12px; border-radius: 8px; background: #F1F3F6">Token Plurk valid · dicek 14.20 WIB.</li>
+</ul>
+</section>
+<section aria-label="Jadwal hari ini" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<h2 style="margin: 0 0 12px; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Jadwal hari ini</h2>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between"><span>12.00 · Sesi 1</span><span style="color: #5B6472">Selesai · 9/10 terjawab</span></div>
+<div style="display: flex; justify-content: space-between; font-weight: 600"><span>14.00 · Sesi 2</span><span style="color: #166534">Berlangsung</span></div>
+<div style="display: flex; justify-content: space-between"><span>16.00 · Sesi 3</span><span style="color: #5B6472">Terjadwal</span></div>
+<div style="display: flex; justify-content: space-between"><span>18.00 · Sesi 4</span><span style="color: #5B6472">Terjadwal</span></div>
+<div style="display: flex; justify-content: space-between"><span>20.00 · Sesi 5</span><span style="color: #5B6472">Terjadwal</span></div>
+</div>
+</section>
+<section aria-label="Top 5 minggu ini" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 20px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Top 5 minggu ini</h2>
+<a href="Peringkat.dc.html" style="font-size: 13px">Lihat semua</a>
+</div>
+<ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px">
+<li><div style="display: flex; justify-content: space-between"><span>melodi_rina</span><strong>184</strong></div></li>
+<li><div style="display: flex; justify-content: space-between"><span>budi_gitar</span><strong>152</strong></div></li>
+<li><div style="display: flex; justify-content: space-between"><span>kopi_senja</span><strong>131</strong></div></li>
+<li><div style="display: flex; justify-content: space-between"><span>nada_minor</span><strong>97</strong></div></li>
+<li><div style="display: flex; justify-content: space-between"><span>si_rebab</span><strong>88</strong></div></li>
+</ol>
+</section>
+</div>
+</div>
+<section aria-label="Stok soal per topik" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Stok soal per topik</h2>
+<span style="color: #5B6472; font-size: 13px">Peluang terpilih sebanding jumlah soal · total 3.550 soal ≈ 14 minggu</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="flex: 0 0 150px; font-weight: 500">Musik</span><div style="flex: 1 1 240px; height: 10px; background: #E9ECF1; border-radius: 999px; overflow: hidden"><div style="width: 93%; height: 100%; background: #1D4ED8"></div></div><span style="flex: 0 0 220px; color: #5B6472; font-size: 13px">463 sisa dari 500 · peluang 14%</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="flex: 0 0 150px; font-weight: 500">Sejarah Indonesia</span><div style="flex: 1 1 240px; height: 10px; background: #E9ECF1; border-radius: 999px; overflow: hidden"><div style="width: 71%; height: 100%; background: #1D4ED8"></div></div><span style="flex: 0 0 220px; color: #5B6472; font-size: 13px">852 sisa dari 1.200 · peluang 34%</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="flex: 0 0 150px; font-weight: 500">Geografi</span><div style="flex: 1 1 240px; height: 10px; background: #E9ECF1; border-radius: 999px; overflow: hidden"><div style="width: 68%; height: 100%; background: #1D4ED8"></div></div><span style="flex: 0 0 220px; color: #5B6472; font-size: 13px">612 sisa dari 900 · peluang 25%</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="flex: 0 0 150px; font-weight: 500">Film</span><div style="flex: 1 1 240px; height: 10px; background: #E9ECF1; border-radius: 999px; overflow: hidden"><div style="width: 40%; height: 100%; background: #1D4ED8"></div></div><span style="flex: 0 0 220px; color: #5B6472; font-size: 13px">260 sisa dari 650 · peluang 18%</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="flex: 0 0 150px; font-weight: 500">Olahraga</span><div style="flex: 1 1 240px; height: 10px; background: #E9ECF1; border-radius: 999px; overflow: hidden"><div style="width: 9%; height: 100%; background: #C2410C"></div></div><span style="flex: 0 0 220px; color: #9A3412; font-size: 13px">27 sisa dari 300 · peluang 8%</span></div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1480}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

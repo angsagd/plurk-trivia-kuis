@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Perintah dan Easter Egg</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F6F8; font-family: Inter, system-ui, sans-serif; color: #15181D; font-size: 14px">
+<nav aria-label="Menu admin" style="flex: 1 1 220px; background: #14171C; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: #FFFFFF; padding: 0 12px 20px">Plurk Trivia Kuis · Admin</div>
+<a href="Main.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Dashboard</a>
+<a href="Peringkat.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Peringkat</a>
+<a href="BankSoal.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Bank soal</a>
+<a href="Pengaturan.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Kontrol &amp; pengaturan</a>
+<a href="PostingLibur.dc.html" style="display: block; padding: 12px; border-radius: 8px; color: #C9CED6; text-decoration: none">Posting hari libur</a>
+<a href="Perintah.dc.html" style="display: block; padding: 12px; border-radius: 8px; background: #2A303A; color: #FFFFFF; text-decoration: none; font-weight: 600">Perintah &amp; easter egg</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600">Perintah &amp; easter egg</h1>
+<div style="color: #5B6472; margin-top: 4px">Bot menjawab mention di luar thread kuis. Fitur tersembunyi, tidak diumumkan ke pemain.</div>
+</div>
+<span style="padding: 6px 10px; border-radius: 999px; background: #FFF4E5; color: #9A3412; font-size: 12px; font-weight: 600">Data contoh</span>
+</header>
+<section aria-label="Pengaturan umum" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end">
+<div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #5B6472">Fitur perintah</span>
+<button type="button" onClick="{{toggle}}" aria-pressed="{{on}}" style="{{toggleStyle}}">{{toggleLabel}}</button>
+</div>
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Cooldown per perintah (menit)<input type="number" value="60" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Batas global (jawaban/jam)<input type="number" value="20" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Kedaluwarsa antrean (menit)<input type="number" value="60" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<div style="flex: 2 1 280px; display: flex; flex-wrap: wrap; gap: 8px">
+<div style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; background: #F1F3F6"><div style="font-size: 12px; color: #5B6472">Mention hari ini</div><div style="font-size: 20px; font-weight: 600">34</div></div>
+<div style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; background: #F1F3F6"><div style="font-size: 12px; color: #5B6472">Dijawab</div><div style="font-size: 20px; font-weight: 600">21</div></div>
+<div style="flex: 1 1 100px; padding: 10px 12px; border-radius: 8px; background: #F1F3F6"><div style="font-size: 12px; color: #5B6472">Di antrean</div><div style="font-size: 20px; font-weight: 600">2</div></div>
+</div>
+</section>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Daftar kata kunci" style="flex: 3 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Kata kunci</h2>
+<div role="group" aria-label="Filter jenis" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #F1F3F6; border-radius: 10px">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+<button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="{{f.style}}">{{f.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 600px; border-collapse: collapse">
+<thead><tr style="text-align: left; color: #5B6472; font-size: 13px"><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Kata kunci</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Sinonim</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Jenis</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Di bantuan</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Status</th><th style="padding: 10px 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500"><span style="position: absolute; left: -9999px">Aksi</span></th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<tr style="{{r.rowStyle}}">
+<td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; font-weight: 600"><code style="font-size: 14px">{{r.key}}</code></td>
+<td style="padding: 10px 8px; border-top: 1px solid #F1F3F6; color: #5B6472">{{r.syn}}</td>
+<td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">{{r.kindLabel}}</td>
+<td style="padding: 10px 8px; border-top: 1px solid #F1F3F6">{{r.helpLabel}}</td>
+<td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><span style="{{r.statusStyle}}">{{r.statusLabel}}</span></td>
+<td style="padding: 10px 8px; border-top: 1px solid #F1F3F6"><button type="button" onClick="{{r.pick}}" style="min-height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; cursor: pointer">Ubah</button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<button type="button" style="align-self: flex-start; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">+ Tambah kata kunci kustom</button>
+</section>
+<section aria-label="Editor kata kunci" style="flex: 2 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div>
+<div style="color: #5B6472; font-size: 13px">{{selKind}}</div>
+<h2 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600"><code>{{selKey}}</code></h2>
+</div>
+<sc-if value="{{isTemplate}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 13px; color: #5B6472">Sinonim: <strong style="color: #15181D">{{selSyn}}</strong></div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Template jawaban
+<textarea rows="3" style="padding: 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; resize: vertical">{{selTemplate}}</textarea>
+</label>
+<div style="font-size: 13px; color: #5B6472">Isian tersedia: <span style="color: #15181D">{{selFields}}</span></div>
+<div style="border-radius: 8px; background: #F1F3F6; padding: 12px 14px; line-height: 1.5"><span style="color: #5B6472; font-size: 13px">Pratinjau untuk melodi_rina:</span><br>{{selPreview}}</div>
+</div>
+</sc-if>
+<sc-if value="{{isCustom}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Kata kunci<input type="text" value="{{selKey}}" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Sinonim (pisahkan dengan koma)<input type="text" value="{{selSyn}}" style="min-height: 44px; padding: 0 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D"></label>
+<label style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px"><input type="checkbox">Tampilkan di daftar bantuan</label>
+<div>
+<div style="font-size: 13px; color: #5B6472; margin-bottom: 8px">Respons (dipilih acak) · {{selCount}}</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{selResponses}}" as="x" hint-placeholder-count="3">
+<div style="display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #F1F3F6">
+<span style="flex: 1; line-height: 1.45; white-space: pre-line">{{x.text}}</span>
+<button type="button" style="min-height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #F3C9B5; background: #FFF4EF; color: #9A3412; font: inherit; font-size: 13px; cursor: pointer">Hapus</button>
+</div>
+</sc-for>
+</div>
+<div style="font-size: 13px; color: #5B6472; margin-top: 6px">{{selMore}}</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6472">Tambah respons
+<textarea rows="2" placeholder="Boleh memakai {nama} dan {sesi_berikutnya}" style="padding: 10px; border: 1px solid #D5D9E0; border-radius: 8px; font: inherit; color: #15181D; resize: vertical"></textarea>
+</label>
+<div style="border-radius: 8px; background: #E7F5EC; color: #166534; padding: 10px 12px; font-size: 13px">Tidak bentrok dengan kata kunci lain · respons terpanjang di bawah 360 karakter</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 0; background: #15181D; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Simpan</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #D5D9E0; background: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Kirim uji (privat)</button>
+</div>
+</section>
+</div>
+<section aria-label="Log perintah" style="background: #FFFFFF; border: 1px solid #E3E6EB; border-radius: 12px; padding: 24px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 12px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600">Log perintah hari ini</h2>
+<span style="color: #5B6472; font-size: 13px">Sesi lebih penting: jawaban menunggu slot posting yang kosong</span>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 640px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; color: #5B6472"><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Waktu</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Pemain</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Teks mention</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Perintah</th><th style="padding: 8px; border-bottom: 1px solid #E3E6EB; font-weight: 500">Status</th></tr></thead>
+<tbody>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">15.56</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">budi_gitar</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">@kuisbot: Top?</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6"><code>klasemen</code></td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6; color: #854D0E">Menunggu slot · sesi berjalan</td></tr>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">15.51</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">kopi_senja</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">@kuisbot bocoran dong</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6"><code>bocoran</code></td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6; color: #166534">Dijawab 15.52</td></tr>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">15.47</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">melodi_rina</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">@kuisbot skor</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6"><code>rank</code></td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6; color: #5B6472">Cooldown sampai 16.42</td></tr>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">15.44</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">tamu_baru</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">@kuisbot rank</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6"><code>rank</code></td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6; color: #5B6472">Diabaikan · bukan teman</td></tr>
+<tr><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">15.42</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">melodi_rina</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6">@kuisbot rank aku berapa sih</td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6"><code>rank</code></td><td style="padding: 8px; border-bottom: 1px solid #F1F3F6; color: #166534">Dijawab 15.43</td></tr>
+<tr><td style="padding: 8px">13.10</td><td style="padding: 8px">nada_minor</td><td style="padding: 8px">@kuisbot jadwal</td><td style="padding: 8px"><code>jadwal</code></td><td style="padding: 8px; color: #9A3412">Kedaluwarsa · tertunda lebih dari 60 menit</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1650}}'>
+class Component extends DCLogic {
+constructor(props) { super(props); this.state = { filter: 'semua', sel: 'rank', on: true }; }
+renderVals() {
+const T = 'Bawaan', S = 'Statistik', K = 'Kustom';
+const data = [
+{ key: 'jadwal', syn: 'sesi', kind: T, help: true, active: true, template: 'Sesi berikutnya {sesi_berikutnya} WIB. Sampai jumpa di thread!', fields: '{sesi_berikutnya}, {tautan_sesi}', preview: 'Sesi berikutnya 16.00 WIB. Sampai jumpa di thread!' },
+{ key: 'klasemen', syn: 'top', kind: T, help: true, active: true, template: 'Top 10 minggu ini: {top10}', fields: '{top10}', preview: 'Top 10 minggu ini: 1. melodi_rina 184 · 2. budi_gitar 152 · 3. kopi_senja 131 …' },
+{ key: 'rank', syn: 'peringkat, skor, poin', kind: T, help: true, active: true, template: 'Kamu #{rank} minggu ini ({poin} poin), {selisih} poin di belakang #{rank_atas}. Sesi berikutnya {sesi_berikutnya}.', fields: '{nama}, {rank}, {poin}, {selisih}, {rank_atas}, {sesi_berikutnya}', preview: 'Kamu #7 minggu ini (42 poin), 5 poin di belakang #6. Sesi berikutnya 16.00.' },
+{ key: 'aturan', syn: 'rule', kind: T, help: true, active: true, template: 'Jawab di balasan thread kuis. Yang pertama benar dapat poin; makin sedikit clue, makin besar poinnya. Maks 3 jawaban per menit.', fields: '—', preview: 'Jawab di balasan thread kuis. Yang pertama benar dapat poin; makin sedikit clue, makin besar poinnya. Maks 3 jawaban per menit.' },
+{ key: 'bantuan', syn: 'help, ?', kind: T, help: true, active: true, template: 'Kata kunci: {daftar_bantuan}', fields: '{daftar_bantuan}', preview: 'Kata kunci: jadwal, klasemen, rank, aturan, bantuan' },
+{ key: 'rekor', syn: '—', kind: S, help: false, active: true, template: 'Rekormu: {rekor_mingguan} poin dalam seminggu, jawaban benar tercepat {tercepat} detik.', fields: '{nama}, {rekor_mingguan}, {tercepat}', preview: 'Rekormu: 184 poin dalam seminggu, jawaban benar tercepat 4 detik.' },
+{ key: 'streak', syn: '—', kind: S, help: false, active: true, template: 'Kamu menang di {streak} sesi berturut-turut. Pertahankan!', fields: '{nama}, {streak}', preview: 'Kamu menang di 3 sesi berturut-turut. Pertahankan!' },
+{ key: 'statistik', syn: '—', kind: S, help: false, active: true, template: 'Total {total_benar} jawaban benar. Paling sering menebak tepat di {fase_favorit}.', fields: '{nama}, {total_benar}, {fase_favorit}', preview: 'Total 128 jawaban benar. Paling sering menebak tepat di clue 1.' },
+{ key: 'halo', syn: 'hai, hi', kind: K, help: false, active: true, count: 3, responses: ['Halo {nama}! Sesi berikutnya {sesi_berikutnya}.', 'Hai juga! Siap jadi juara minggu ini?', 'Halo! Aku sedang menyiapkan soal, jangan diintip ya.'] },
+{ key: 'makasih', syn: 'thanks, tq', kind: K, help: false, active: true, count: 3, responses: ['Sama-sama, {nama}!', 'Sama-sama! Jangan lupa sesi berikutnya {sesi_berikutnya} 😉', 'Dengan senang hati.'] },
+{ key: 'bocoran', syn: 'contek, jawaban', kind: K, help: false, active: true, count: 3, responses: ['Nice try 😏 Jawabannya ada di kepalamu, bukan di kepalaku.', 'Bocoran hari ini: yang rajin ikut sesi biasanya menang.', 'Kalau aku kasih tahu, nanti kamu menang terus. Nggak seru, kan?'] },
+{ key: 'pantun', syn: '—', kind: K, help: false, active: true, count: 24, responses: ['Burung pipit terbang ke dahan,\nhinggap sebentar di pohon jati.\nJawablah soal dengan perlahan,\npoin besar datang menanti.', 'Pergi ke pasar membeli tomat,\ntomat merah dibawa pulang.\nKalau jawaban sudah tepat,\nnamamu tampil di papan menang.'] },
+{ key: 'fakta', syn: '—', kind: K, help: false, active: true, count: 40, responses: ['Plurk diluncurkan pada 2008.', 'Madu yang disegel rapat bisa awet sangat lama karena kadar airnya rendah.'] },
+{ key: 'ramal', syn: 'nasib', kind: K, help: false, active: false, count: 12, responses: ['Bintangmu cerah di soal ber-clue 2 hari ini.', 'Ramalan: poinmu naik, asal jangan menebak sembarangan.'] }
+];
+const f = this.state.filter;
+const shown = data.filter((d) => f === 'semua' || d.kind.toLowerCase() === f);
+const cur = data.find((d) => d.key === this.state.sel) || data[2];
+const on = 'min-height: 40px; padding: 0 14px; border-radius: 8px; border: 0; background: #FFFFFF; color: #15181D; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.08)';
+const off = 'min-height: 40px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #5B6472; font: inherit; font-weight: 500; cursor: pointer';
+const isCustom = cur.kind === K;
+const resp = isCustom ? cur.responses : [];
+return {
+on: this.state.on,
+toggle: () => this.setState({ on: !this.state.on }),
+toggleLabel: this.state.on ? 'Aktif · klik untuk mematikan' : 'Mati · klik untuk menyalakan',
+toggleStyle: 'min-height: 44px; padding: 0 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; text-align: left; ' + (this.state.on ? 'border: 1px solid #A7D7B5; background: #E7F5EC; color: #166534' : 'border: 1px solid #F3C9B5; background: #FFF4EF; color: #9A3412'),
+filters: [['semua', 'Semua'], ['bawaan', 'Bawaan'], ['statistik', 'Statistik'], ['kustom', 'Kustom']].map((x) => ({ label: x[1], on: x[0] === f, style: x[0] === f ? on : off, pick: () => this.setState({ filter: x[0] }) })),
+rows: shown.map((d) => ({
+key: d.key, syn: d.syn,
+kindLabel: d.kind === K ? d.kind + ' · ' + d.count + ' respons' : d.kind,
+helpLabel: d.help ? 'Ya' : 'Tidak',
+statusLabel: d.active ? 'Aktif' : 'Nonaktif',
+statusStyle: 'padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; ' + (d.active ? 'background: #E7F5EC; color: #166534' : 'background: #F1F3F6; color: #5B6472'),
+rowStyle: d.key === cur.key ? 'background: #EEF3FF' : '',
+pick: () => this.setState({ sel: d.key })
+})),
+selKey: cur.key,
+selKind: cur.kind === K ? 'Kata kunci kustom (easter egg)' : (cur.kind === S ? 'Statistik tersembunyi · logika di kode, template bisa diubah' : 'Perintah bawaan · logika di kode, template bisa diubah'),
+selSyn: cur.syn,
+isTemplate: !isCustom,
+isCustom: isCustom,
+selTemplate: cur.template || '',
+selFields: cur.fields || '',
+selPreview: cur.preview || '',
+selCount: isCustom ? cur.count + ' respons' : '',
+selResponses: resp.map((t) => ({ text: t })),
+selMore: isCustom && cur.count > resp.length ? '+ ' + (cur.count - resp.length) + ' respons lainnya' : ''
+};
+}
+}
+</script>
+</body>
+</html>
