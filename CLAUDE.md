@@ -120,8 +120,12 @@ Dockerfile  compose.yml  compose.override.yml  compose.prod.yml  .env.example  p
   - `add_response(plurk_id, content, qualifier)` → `/APP/Responses/responseAdd`
   - `get_responses(plurk_id, from_response)` → `/APP/Responses/get`
   - `accept_friends()` → `/APP/Alerts/addAllAsFriends` (tiap 10 tick)
-  - `get_mentions(since)` dan `get_friends()` → endpoint ditentukan di tahap 4 (lihat "Perintah lewat mention")
-  - `whoami()` → `/APP/Users/currUser` (cek token)
+  - `get_mentions(since)` dan `get_friends()` → endpoint ditentukan di tahap 4 (lihat "Perintah lewat mention"). Kandidat dari dokumentasi: `/APP/Alerts/getActive` & `/APP/Alerts/getHistory` (alert `type: "mentioned"` dengan `plurk_id`, `response_id` — null bila mention di plurk), `/APP/Timeline/getPlurks` `filter=mentioned`, `/APP/FriendsFans/getFriendsByOffset` (`user_id`, `offset`, `limit`)
+  - `whoami()` → `/APP/Users/me` (nama lama `/APP/Users/currUser`; cek token, di-cache per proses)
+- `RealPlurk` (`app/plurk/real.py`, sudah dibuat sebelum tahap 4): POST ke `https://www.plurk.com/APP/...` dengan `OAuth1Session` (HMAC-SHA1). Error: HTTP 400 + `error_text`; `anti-flood-*` → `AntiFlood`; HTTP 401 atau teks token tidak valid → `TokenDitolak`; selain itu / koneksi gagal → `PlurkError`. Isi balasan memakai `content_raw` (bukan HTML `content`); waktu `posted` (GMT) dikonversi ke WIB.
+- `get_responses` sementara mengambil **semua** balasan (`from_response=0`) lalu menyaring ID > `setelah_id`, karena dokumentasi tidak jelas apakah `from_response` offset atau ID. Optimalkan setelah dibuktikan di tahap 4.
+- Cek token tanpa memposting: `docker compose run --rm bot python -m app.cli cek-plurk` (memakai kredensial `.env`/`.env.dev`, walau `PLURK_MODE=fake`).
+- Risiko yang tidak bisa dihindari: koneksi putus SETELAH Plurk menerima posting → outbox mengira gagal → bisa terposting dua kali saat dicoba ulang. Amati di tahap 4.
 - Semua posting lewat tabel `outbox` dengan `dedupe_key` (sesi, nomor soal, langkah). Langkah state machine baru maju setelah posting terkirim → restart tidak menyebabkan posting ganda.
 - Anti-flood (`anti-flood-same-content`, `anti-flood-too-many-new`): tetap `pending`, coba lagi tick berikutnya; gagal 5× → `failed` + peringatan. Maksimal 2 posting per tick.
 - Token ditolak (401): berhenti memposting, isi `last_error`, kirim notifikasi.
@@ -423,11 +427,11 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 - `CLAUDE.md` — dokumen ini
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
-- Tahap 3: `app/plurk/` (`client.py` antarmuka + error, `fake.py` FakePlurk SQLite, `real.py` stub), `app/bot/` (`engine.py` mesin thread, `outbox.py`, `tick.py`, `messages.py`, `pengaturan.py`, `peringkat.py`, `simulator.py`), CLI `status`/`tick`/`simulasi`/`thread`
+- Tahap 3–4: `app/plurk/` (`client.py` antarmuka + error, `fake.py` FakePlurk SQLite, `real.py` RealPlurk OAuth, belum diuji ke Plurk asli), `app/bot/` (`engine.py` mesin thread, `outbox.py`, `tick.py`, `messages.py`, `pengaturan.py`, `peringkat.py`, `simulator.py`), CLI `status`/`tick`/`simulasi`/`thread`
 - Tahap 2: `app/db.py` (SQLite WAL, `WaktuWIB`, `sesi_db`), `app/models.py` (19 tabel), `alembic/` (migrasi `skema awal`), `app/bank_soal.py` (impor topik), CLI `seed` & `buat-admin`; tick menulis `bot_state`, healthcheck bot membaca `bot_state.heartbeat_at`
 - Tahap 1: `app/core/` — `matching.py` (normalisasi, kata utuh), `judging.py` (status balasan, pemenang, fase), `scoring.py`, `clues.py`, `validator.py` (nama file, isi, `text_hash`, unggah, ganti nama, kemiripan), `selection.py`, `schedule.py` (hari aktif, slot, sesi berikutnya, periode Rabu–Senin)
 - `tools/validasi_soal.py` — CLI validator bank soal di atas `app/core/validator.py`
-- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
+- `tests/` — `core/` (aturan inti), `test_fondasi.py`, `test_engine.py` (skenario thread, outbox, crash, ketahanan sehari penuh), `test_real_plurk.py` (RealPlurk dengan sesi HTTP palsu), `test_db.py` (migrasi = model, impor, CLI), `test_tools.py`; fixture `db_path`/`engine` membuat database lewat `alembic upgrade head`; `conftest.py` mengosongkan variabel env agar tes tidak terpengaruh `.env.dev`
 - `contoh/trivia_99_contoh.txt` — format bank soal dengan 8 soal karangan
 - `docs/mockup/` — sumber mockup admin, 6 layar termasuk Perintah & easter egg (`.dc.html`, data contoh)
 - `.gitignore`, `.dockerignore`, `.env.example`

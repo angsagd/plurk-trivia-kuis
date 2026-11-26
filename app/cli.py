@@ -6,7 +6,8 @@ buat-admin --username U   buat akun admin / ganti password (--reset)
 status aktif|jeda|berhenti|hentikan   ubah status bot (hentikan = semua thread langsung die)
 tick --now "2026-11-30T12:00"         jalankan satu tick pada jam tertentu (khusus PLURK_MODE=fake)
 simulasi --pemain 8 --benar 0.3       pemain tiruan membalas thread FakePlurk (Ctrl-C untuk berhenti)
-thread [--sesi ID]                    tampilkan isi thread FakePlurk (default: sesi terbaru)"""
+thread [--sesi ID]                    tampilkan isi thread FakePlurk (default: sesi terbaru)
+cek-plurk                             cek kredensial Plurk asli (/APP/Users/me); tidak memposting apa pun"""
 
 import argparse
 import getpass
@@ -209,6 +210,20 @@ def thread(sesi_id: int | None) -> int:
     return 0
 
 
+def cek_plurk() -> int:
+    """Pakai kredensial di .env walau PLURK_MODE=fake; hanya membaca akun bot."""
+    from app.plurk.client import PlurkError
+    from app.plurk.real import RealPlurk
+
+    try:
+        saya = RealPlurk(get_settings()).whoami()
+    except (ValueError, PlurkError) as e:
+        print(f"GAGAL: {e}")
+        return 1
+    print(f"OK: token valid untuk akun {saya.nick} (id {saya.id})")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.cli")
     sub = ap.add_subparsers(dest="perintah", required=True)
@@ -242,6 +257,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("thread", help="tampilkan isi thread FakePlurk")
     p.add_argument("--sesi", type=int)
 
+    sub.add_parser("cek-plurk", help="cek kredensial Plurk asli (tanpa memposting)")
+
     args = ap.parse_args(argv)
     if args.perintah == "health":
         return health(args.target)
@@ -258,6 +275,8 @@ def main(argv: list[str] | None = None) -> int:
         return simulasi(args.pemain, args.benar, args.balas, args.jeda, args.sekali, args.seed)
     if args.perintah == "thread":
         return thread(args.sesi)
+    if args.perintah == "cek-plurk":
+        return cek_plurk()
     return 2
 
 
