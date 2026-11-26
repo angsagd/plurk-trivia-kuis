@@ -71,7 +71,7 @@ Aturan:
 - `compose.yml` — dasar (service admin + bot, volume `data`, healthcheck, restart).
 - `compose.override.yml` — dev, otomatis dibaca: `.env.dev`, build arg `INSTALL_DEV=true` (pytest, ruff, httpx2), `--reload`, port `8000:8000`, `./app`, `./tests`, `./tools`, `./contoh`, `pyproject.toml` di-mount (tes & lint tanpa rebuild), `./private/bank_soal` di-mount read-only ke `/app/private/bank_soal`.
 - Dependensi di `requirements.txt` (produksi) dan `requirements-dev.txt` (dev); `pyproject.toml` berisi konfigurasi pytest & ruff. Lint: `docker compose run --rm bot ruff check .` dan `ruff format .`.
-- `compose.prod.yml` — produksi: label Traefik dari variabel `.env` (`${ADMIN_HOST}`, `${TRAEFIK_NETWORK}`, `${TRAEFIK_CERTRESOLVER}`), network Traefik eksternal, batas log 3 × 10 MB.
+- `compose.prod.yml` — produksi: label Traefik dari variabel `.env` (`${ADMIN_HOST}`, `${TRAEFIK_ENTRYPOINT}`, `${TRAEFIK_CERTRESOLVER}`), batas log 3 × 10 MB. Traefik VPS memakai `network_mode: host`, jadi admin cukup di network default proyek; untuk Traefik di network bersama tambahkan `compose.traefik-net.yml` (`${TRAEFIK_NETWORK}`).
 - Produksi dijalankan dengan `docker compose -f compose.yml -f compose.prod.yml …`.
 
 ### Pengembangan (Mac + Docker Desktop)

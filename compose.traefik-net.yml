@@ -1,0 +1,14 @@
+# Opsional: hanya bila Traefik BUKAN host-mode dan berada di network Docker bersama.
+#   docker compose -f compose.yml -f compose.prod.yml -f compose.traefik-net.yml up -d
+services:
+  admin:
+    networks:
+      - default
+      - traefik
+    labels:
+      - traefik.docker.network=${TRAEFIK_NETWORK:?isi TRAEFIK_NETWORK di .env}
+
+networks:
+  traefik:
+    name: ${TRAEFIK_NETWORK:?isi TRAEFIK_NETWORK di .env}
+    external: true

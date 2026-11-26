@@ -1,4 +1,7 @@
 # Produksi di VPS, di belakang Traefik. Semua nilai spesifik server dibaca dari .env.
+# Traefik di VPS memakai network_mode: host, sehingga menjangkau kontainer admin lewat IP-nya di network
+# default proyek ini (tanpa network bersama). Bila Traefik berada di network Docker bersama, tambahkan
+# -f compose.traefik-net.yml (lihat docs/deploy.md).
 x-keras: &keras  # hardening: root filesystem read-only, tanpa capability Linux
   read_only: true
   tmpfs:
@@ -14,11 +17,8 @@ services:
     env_file: .env
     environment:
       FORWARDED_ALLOW_IPS: "*"   # hanya Traefik yang bisa menjangkau port 8000
-    networks:
-      - traefik
     labels:
       - traefik.enable=true
-      - traefik.docker.network=${TRAEFIK_NETWORK:?isi TRAEFIK_NETWORK di .env}
       - traefik.http.routers.plurk-trivia-kuis-admin.rule=Host(`${ADMIN_HOST:?isi ADMIN_HOST di .env}`)
       - traefik.http.routers.plurk-trivia-kuis-admin.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.plurk-trivia-kuis-admin.tls=true
@@ -34,8 +34,3 @@ services:
     <<: *keras
     env_file: .env
     logging: *log
-
-networks:
-  traefik:
-    name: ${TRAEFIK_NETWORK:?isi TRAEFIK_NETWORK di .env}
-    external: true

@@ -16,17 +16,17 @@ bank soal diunggah lewat halaman admin.
 | --- | --- | --- |
 | Arsitektur CPU | `uname -m` | (image selalu di-build di VPS) |
 | Docker Compose v2 | `docker compose version` | |
-| Nama network Traefik | `docker network ls` lalu `docker inspect <container-traefik>` | `TRAEFIK_NETWORK` |
+| Mode network Traefik | `docker inspect <container-traefik> --format '{{.HostConfig.NetworkMode}}'` | `host` → tidak perlu apa-apa; network bersama → `TRAEFIK_NETWORK` + `-f compose.traefik-net.yml` |
 | Entrypoint HTTPS | konfigurasi Traefik (`--entrypoints.<nama>.address=:443`) | `TRAEFIK_ENTRYPOINT` |
 | Certresolver | konfigurasi Traefik (`--certificatesresolvers.<nama>...`) | `TRAEFIK_CERTRESOLVER` |
-| Jam server (NTP) | `timedatectl` → `System clock synchronized: yes` | jadwal bergantung pada menit yang tepat |
+| Jam server (NTP) | `timedatectl` → `System clock synchronized: yes` | jadwal bergantung pada menit yang tepat; zona waktu server boleh apa saja (aplikasi memakai WIB), tapi jam cron mengikuti zona server |
 | DNS | record A subdomain admin → IP VPS | `ADMIN_HOST` |
 
 ## 1. Pemasangan pertama
 
 ```bash
-sudo git clone https://github.com/angsagd/plurk-trivia-kuis.git /opt/plurk-trivia-kuis
-cd /opt/plurk-trivia-kuis
+git clone https://github.com/angsagd/plurk-trivia-kuis.git ~/plurk-trivia-kuis   # user dengan grup docker; tidak perlu sudo
+cd ~/plurk-trivia-kuis
 cp .env.example .env && chmod 600 .env
 ```
 
@@ -35,7 +35,7 @@ Isi `.env`:
 - `PLURK_MODE=real` dan empat kredensial Plurk (token permanen dari https://www.plurk.com/OAuth/test).
 - `APP_SECRET_KEY`: `openssl rand -hex 32`.
 - `DB_PATH=/app/data/kuis.db`, `FAKE_NOW=` kosong, `TICK_SECONDS=60`, `COOKIE_SECURE=true`.
-- `ADMIN_HOST`, `TRAEFIK_NETWORK`, `TRAEFIK_ENTRYPOINT`, `TRAEFIK_CERTRESOLVER` dari langkah 0.
+- `ADMIN_HOST`, `TRAEFIK_ENTRYPOINT`, `TRAEFIK_CERTRESOLVER` dari langkah 0 (`TRAEFIK_NETWORK` hanya bila Traefik di network bersama).
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (opsional, sangat disarankan).
 
 ```bash
@@ -57,12 +57,12 @@ Bot mulai dengan status **berhenti**. Lalu, lewat `https://<ADMIN_HOST>`:
 ## 2. Backup harian
 
 ```bash
-sudo crontab -e
-# 03.30 WIB setiap hari (sesuaikan bila zona waktu VPS bukan WIB: `date`)
-30 3 * * * cd /opt/plurk-trivia-kuis && BACKUP_RCLONE="remote:kuis-backup/db" scripts/backup.sh >> /var/log/kuis-backup.log 2>&1
+crontab -e
+# 03.30 WIB setiap hari. Jam cron mengikuti zona waktu server (`date`): WITA -> 04.30, UTC -> 20.30.
+30 3 * * * cd ~/plurk-trivia-kuis && BACKUP_DIR=$HOME/backups/plurk-trivia-kuis BACKUP_RCLONE="remote:kuis-backup/db" scripts/backup.sh >> $HOME/backups/kuis-backup.log 2>&1
 ```
 
-- Backup disimpan di `/var/backups/plurk-trivia-kuis` (14 hari) dan **disalin ke luar VPS** lewat
+- Backup disimpan di `BACKUP_DIR` (bawaan `/var/backups/plurk-trivia-kuis`; tanpa root pakai `$HOME/backups/...`) selama 14 hari dan **disalin ke luar VPS** lewat
   `BACKUP_RCLONE` (rclone, mis. Backblaze B2 / Google Drive) atau `BACKUP_RSYNC` (`user@host:/path/`).
 - Backup gagal (database / offsite) → notifikasi Telegram.
 - Uji pemulihan sebulan sekali di laptop: salin satu `kuis_*.db.gz`, lalu
@@ -73,7 +73,7 @@ sudo crontab -e
 Di luar jam sesi (sebelum 11.00 / setelah 23.00 WIB) atau di hari libur:
 
 ```bash
-cd /opt/plurk-trivia-kuis && scripts/update.sh
+cd ~/plurk-trivia-kuis && scripts/update.sh
 ```
 
 Skrip ini: `git pull --ff-only` → backup → build → `alembic upgrade head` → `up -d` → `ps`.
