@@ -462,6 +462,7 @@ Statistik untuk riset skor: fase rata-rata terjawab per soal/topik, % tidak terj
 ## Isi repo saat ini
 
 - `CLAUDE.md` — dokumen ini
+- `README.md` — ringkasan publik (fitur, menjalankan di lokal, format bank soal, produksi)
 - Tahap 0: `Dockerfile` (python:3.12-slim, user non-root `app`), `compose.yml`, `compose.override.yml`, `compose.prod.yml`, `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`
 - `app/config.py` (pydantic-settings; `PLURK_MODE=real` menolak `FAKE_NOW`/`TICK_SECONDS`≠60), `app/clock.py` (`SystemClock`/`FakeClock`, WIB), `app/bot/loop.py` (tick tiap detik ke-0 WIB atau jam palsu; SIGTERM menyelesaikan tick berjalan), `app/bot/tick.py` (kerangka), `app/admin/main.py` (kerangka + `/health`), `app/cli.py` (`health admin|bot`)
 - Tahap 8: `app/core/commands.py` (`parse_perintah`), `app/bot/mention.py`, `PlurkClient.get_mentions/get_plurk/get_friend_ids` (Fake + Real), migrasi `teks perintah` (`command_requests.text`, `.keyword`), CLI `cek-mention`
