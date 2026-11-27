@@ -123,3 +123,7 @@ bukan lewat issue publik.
 ## Dokumentasi pengembang
 
 Spesifikasi lengkap ada di [`CLAUDE.md`](CLAUDE.md): aturan permainan, mekanik thread, skema database, keputusan per tahap, dan tes wajib.
+
+## Lisensi
+
+[MIT](LICENSE). Lisensi ini hanya berlaku untuk kode di repo ini, tidak termasuk bank soal asli, yang memang tidak dipublikasikan.
